@@ -44,6 +44,7 @@ import {
   UserOutlined,
   CheckCircleFilled,
   GlobalOutlined,
+  ArrowRightOutlined,
 } from "@ant-design/icons";
 
 import {
@@ -1801,6 +1802,15 @@ export default function Index() {
   // RESUME CARD PREVIEW
   // ==========================================================
 
+  const getLatestLocalPortfolio = () => {
+    const entries = Object.keys(localStorage)
+      .filter((key) => key.startsWith("portfolio:"))
+      .map((key) => safeParse(localStorage.getItem(key)))
+      .filter(Boolean);
+
+    return entries[entries.length - 1] || null;
+  };
+
   const openResumePreview = (resume) => {
     setResumePreviewResume({
       ...resume,
@@ -3427,33 +3437,10 @@ export default function Index() {
                   }
                 </Text>
               </div>
-              <Button
-                type="primary"
-                size="large"
-                icon={<PlusOutlined />}
-                onClick={openCreateResume}
-                disabled={myResumes.length >= 1}
-                style={{
-                  background:
-                    myResumes.length >= 1
-                      ? undefined
-                      : PALETTE.deepSteelBlue,
-                  borderColor:
-                    myResumes.length >= 1
-                      ? undefined
-                      : PALETTE.deepSteelBlue,
-                  height: 48,
-                  fontWeight: 700,
-                }}
-              >
-                {myResumes.length >= 1
-                  ? "1 ta resume yaratilgan"
-                  : t.createResume}
-              </Button>
             </div>
           </Card>
 
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Row gutter={[12, 12]} style={{ marginBottom: 18 }}>
             {[
               ["Resumes", myResumes.length, <FilePdfOutlined />],
               ["Certificates", certificates.length, <CheckCircleFilled />],
@@ -3474,34 +3461,36 @@ export default function Index() {
             ))}
           </Row>
 
+          {/* ====================================================
+              YOUR INFORMATION HUB
+          ==================================================== */}
+          {/* ====================================================
+              PROFILE WORKSPACE
+          ==================================================== */}
           <Card
             style={{
-              borderRadius: radius + 6,
+              borderRadius: 28,
               background: isDarkMode
-                ? "linear-gradient(180deg,#183744,#102630)"
+                ? "linear-gradient(145deg,#173542 0%,#102731 100%)"
                 : "#FFFFFF",
               border: `1px solid ${isDarkMode
                   ? "rgba(255,255,255,.10)"
-                  : "#DDE8EC"
+                  : "#DCE6EA"
                 }`,
               boxShadow: isDarkMode
-                ? "0 22px 55px rgba(0,0,0,.14)"
-                : "0 22px 55px rgba(20,45,60,.07)",
+                ? "0 24px 65px rgba(0,0,0,.16)"
+                : "0 24px 65px rgba(35,66,78,.07)",
             }}
-            styles={{
-              body: {
-                padding: 18,
-              },
-            }}
+            styles={{ body: { padding: 28 } }}
           >
             <div
               style={{
-                padding: "4px 6px 14px",
                 display: "flex",
-                alignItems: "center",
                 justifyContent: "space-between",
-                gap: 12,
+                alignItems: "flex-start",
+                gap: 18,
                 flexWrap: "wrap",
+                marginBottom: 24,
               }}
             >
               <div>
@@ -3510,83 +3499,63 @@ export default function Index() {
                     color: PALETTE.deepSteelBlue,
                     fontSize: 10,
                     fontWeight: 900,
-                    letterSpacing: ".9px",
+                    letterSpacing: "1px",
                     textTransform: "uppercase",
                   }}
                 >
-                  CEOBACE PROFILE HUB
+                  CEOBACE PROFILE WORKSPACE
                 </div>
-                <Title level={3} style={{ margin: "4px 0 2px" }}>
+                <Title
+                  level={2}
+                  style={{
+                    margin: "6px 0 5px",
+                    fontSize: 29,
+                  }}
+                >
                   Sizning ma’lumotlaringiz
                 </Title>
                 <Text type="secondary">
-                  Resume, portfolio va sertifikatlaringiz bitta joyda.
+                  Resume, portfolio va professional hujjatlaringizni bir joyda boshqaring.
                 </Text>
               </div>
-            </div>
 
-            <Card
-              style={{
-                borderRadius: radius + 4,
-                background: isDarkMode ? "#183744" : "#FFFFFF",
-                border: `1px solid ${isDarkMode
-                    ? "rgba(255,255,255,.09)"
-                    : "#E0E8EC"
-                  }`,
-                boxShadow: isDarkMode
-                  ? "0 18px 45px rgba(0,0,0,.12)"
-                  : "0 18px 45px rgba(20,45,60,.06)",
-              }}
-              styles={{ body: { padding: 22 } }}
-            >
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between",
                   alignItems: "center",
-                  gap: 14,
-                  marginBottom: 18,
+                  gap: 9,
                   flexWrap: "wrap",
                 }}
               >
-                <div>
-                  <div
-                    style={{
-                      color: PALETTE.deepSteelBlue,
-                      fontWeight: 850,
-                      fontSize: 10,
-                      letterSpacing: ".9px",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Your documents
-                  </div>
-                  <Title
-                    level={3}
-                    style={{
-                      margin: "5px 0 2px",
-                    }}
-                  >
-                    {t.myResumes}
-                  </Title>
-                  <Text type="secondary">
-                    Barcha professional ma’lumotlaringiz bitta joyda.
-                  </Text>
-                </div>
+                <Tag
+                  color="green"
+                  style={{
+                    margin: 0,
+                    borderRadius: 999,
+                    padding: "5px 10px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {myResumes.length ? "1 Resume tayyor" : "Resume yo‘q"}
+                </Tag>
 
                 <Tag
                   color="blue"
                   style={{
                     margin: 0,
                     borderRadius: 999,
-                    padding: "4px 10px",
+                    padding: "5px 10px",
+                    fontWeight: 700,
                   }}
                 >
-                  {myResumes.length}/1 Resume
+                  {certificates.length} PDF
                 </Tag>
               </div>
+            </div>
 
-              <Row gutter={[16, 16]}>
+            <Row gutter={[18, 18]} align="stretch">
+              {/* RESUME — primary asset */}
+              <Col xs={24} lg={14}>
                 {filteredResumes.map((resume) => {
                   const data =
                     resume.parsedData ||
@@ -3615,66 +3584,375 @@ export default function Index() {
                     );
 
                   return (
-                    <Col
-                      xs={24}
-                      lg={12}
-                      key={resume.id}
+                    <Card
+                      hoverable
+                      onClick={() =>
+                        openResumePreview(resume)
+                      }
+                      style={{
+                        height: "100%",
+                        minHeight: 410,
+                        borderRadius: 22,
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        border:
+                          `1px solid ${isDarkMode
+                            ? "rgba(255,255,255,.10)"
+                            : "#DDE7EB"
+                          }`,
+                        boxShadow:
+                          "0 12px 35px rgba(20,45,60,.06)",
+                      }}
+                      styles={{ body: { padding: 0 } }}
                     >
-                      <Card
-                        hoverable
-                        onClick={() =>
-                          openResumePreview(resume)
-                        }
+                      <div
                         style={{
-                          height: "100%",
-                          cursor: "pointer",
-                          borderRadius:
-                            radius + 5,
+                          position: "relative",
+                          height: 320,
                           overflow: "hidden",
-                          border:
-                            `1px solid ${isDarkMode
-                              ? "rgba(255,255,255,.10)"
-                              : "#DCE7EB"
-                            }`,
+                          background: isDarkMode
+                            ? "#112B36"
+                            : "#EEF4F6",
                         }}
-                        styles={{
-                          body: {
-                            padding: 0,
-                          },
+                      >
+                        {template?.thumbnail ? (
+                          <img
+                            src={template.thumbnail}
+                            alt={template.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              height: "100%",
+                              display: "grid",
+                              placeItems: "center",
+                              color: PALETTE.deepSteelBlue,
+                              fontSize: 70,
+                            }}
+                          >
+                            <FilePdfOutlined />
+                          </div>
+                        )}
+
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background:
+                              "linear-gradient(180deg,rgba(8,20,25,.02) 30%,rgba(8,20,25,.90) 100%)",
+                          }}
+                        />
+
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: 18,
+                            left: 18,
+                            right: 18,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Tag
+                            color="cyan"
+                            style={{
+                              borderRadius: 999,
+                              margin: 0,
+                              fontWeight: 750,
+                            }}
+                          >
+                            {template?.name || "Resume"}
+                          </Tag>
+
+                          <div
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: 12,
+                              display: "grid",
+                              placeItems: "center",
+                              background:
+                                "rgba(0,0,0,.18)",
+                              color: "#fff",
+                              border:
+                                "1px solid rgba(255,255,255,.22)",
+                            }}
+                          >
+                            {isFavorite ? "★" : "☆"}
+                          </div>
+                        </div>
+
+                        <Avatar
+                          size={72}
+                          src={avatar}
+                          icon={<UserOutlined />}
+                          style={{
+                            position: "absolute",
+                            left: 20,
+                            bottom: 20,
+                            border: "3px solid #fff",
+                            background:
+                              PALETTE.deepSteelBlue,
+                            boxShadow:
+                              "0 10px 30px rgba(0,0,0,.25)",
+                          }}
+                        />
+
+                        <div
+                          style={{
+                            position: "absolute",
+                            left: 114,
+                            bottom: 23,
+                            right: 20,
+                            color: "#fff",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 23,
+                              lineHeight: 1.08,
+                              fontWeight: 900,
+                              letterSpacing: "-.5px",
+                            }}
+                          >
+                            {data.personalInfo?.firstName}{" "}
+                            {data.personalInfo?.lastName}
+                          </div>
+
+                          <div
+                            style={{
+                              marginTop: 5,
+                              fontSize: 11,
+                              opacity: .82,
+                            }}
+                          >
+                            {data.personalInfo?.professionalTitle ||
+                              resume.title ||
+                              "Professional Resume"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: "17px 20px 18px",
                         }}
                       >
                         <div
                           style={{
-                            position: "relative",
-                            minHeight: 260,
-                            overflow: "hidden",
-                            background:
-                              isDarkMode
-                                ? "#102832"
-                                : "#EEF4F6",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: 12,
                           }}
                         >
-                          {template?.thumbnail ? (
-                            <img
-                              src={template.thumbnail}
-                              alt={template.name}
+                          <div>
+                            <div
                               style={{
-                                width: "100%",
-                                height: 260,
-                                objectFit: "cover",
+                                color: colors.textSecondary,
+                                fontSize: 10,
+                              }}
+                            >
+                              PRIMARY DOCUMENT
+                            </div>
+                            <div
+                              style={{
+                                color: colors.text,
+                                fontWeight: 800,
+                                fontSize: 14,
+                                marginTop: 3,
+                              }}
+                            >
+                              Click anywhere to open
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              padding:
+                                "7px 10px",
+                              borderRadius: 999,
+                              background: isDarkMode
+                                ? "#183C49"
+                                : "#F0F7F9",
+                              color:
+                                PALETTE.deepSteelBlue,
+                              fontSize: 10,
+                              fontWeight: 800,
+                            }}
+                          >
+                            {data.projects?.length || 0} projects
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+
+                {filteredResumes.length === 0 && (
+                  <Card
+                    style={{
+                      minHeight: 410,
+                      borderRadius: 22,
+                      display: "grid",
+                      placeItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          width: 74,
+                          height: 74,
+                          margin: "0 auto 15px",
+                          borderRadius: 22,
+                          display: "grid",
+                          placeItems: "center",
+                          background: "#EAF5F9",
+                          color: PALETTE.deepSteelBlue,
+                          fontSize: 28,
+                        }}
+                      >
+                        <FilePdfOutlined />
+                      </div>
+
+                      <Title level={4}>
+                        Resume yarating
+                      </Title>
+
+                      <Text type="secondary">
+                        CEOBACE’dagi birinchi professional hujjatingizni yarating.
+                      </Text>
+
+                      <div style={{ marginTop: 16 }}>
+                        <Button
+                          type="primary"
+                          size="large"
+                          onClick={openCreateResume}
+                          disabled={myResumes.length >= 1}
+                          style={{
+                            borderRadius: 11,
+                            background:
+                              PALETTE.deepSteelBlue,
+                            borderColor:
+                              PALETTE.deepSteelBlue,
+                            fontWeight: 800,
+                          }}
+                        >
+                          + Resume yaratish
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+              </Col>
+
+              {/* RIGHT COLUMN */}
+              <Col xs={24} lg={10}>
+                <div
+                  style={{
+                    height: "100%",
+                    display: "grid",
+                    gridTemplateRows: "1.25fr .85fr",
+                    gap: 18,
+                  }}
+                >
+                  {/* PORTFOLIO */}
+                  {(() => {
+                    const latest =
+                      getLatestLocalPortfolio();
+
+                    const siteUrl =
+                      latest?.slug
+                        ? `/p/${latest.slug}`
+                        : "";
+
+                    return (
+                      <Card
+                        hoverable
+                        onClick={() => {
+                          if (siteUrl) {
+                            window.location.href =
+                              siteUrl;
+                          } else if (myResumes[0]) {
+                            openPortfolioGenerator(
+                              myResumes[0]
+                            );
+                          }
+                        }}
+                        style={{
+                          borderRadius: 22,
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          background:
+                            isDarkMode
+                              ? "#091419"
+                              : "#0D1C23",
+                          border: "none",
+                          minHeight: 235,
+                        }}
+                        styles={{ body: { padding: 0 } }}
+                      >
+                        <div
+                          style={{
+                            position: "relative",
+                            height: 235,
+                            overflow: "hidden",
+                            color: "#fff",
+                          }}
+                        >
+                          {siteUrl ? (
+                            <iframe
+                              title="Portfolio preview"
+                              src={siteUrl}
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "217%",
+                                height: 560,
+                                border: 0,
+                                transform: "scale(.46)",
+                                transformOrigin: "top left",
+                                pointerEvents: "none",
                               }}
                             />
                           ) : (
                             <div
                               style={{
-                                height: 260,
-                                display: "grid",
-                                placeItems: "center",
-                                fontSize: 64,
-                                color: PALETTE.deepSteelBlue,
+                                position: "absolute",
+                                inset: 0,
+                                background:
+                                  "radial-gradient(circle at 72% 22%,rgba(49,112,142,.88) 0%,transparent 32%),linear-gradient(135deg,#061015,#163743)",
                               }}
                             >
-                              <FilePdfOutlined />
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  inset: 18,
+                                  border:
+                                    "1px solid rgba(255,255,255,.12)",
+                                  borderRadius: 17,
+                                }}
+                              />
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  left: 28,
+                                  bottom: 26,
+                                  fontSize: 28,
+                                  fontWeight: 900,
+                                  letterSpacing: "-1px",
+                                }}
+                              >
+                                Your Portfolio
+                              </div>
                             </div>
                           )}
 
@@ -3683,371 +3961,291 @@ export default function Index() {
                               position: "absolute",
                               inset: 0,
                               background:
-                                "linear-gradient(180deg,rgba(8,20,25,.03),rgba(8,20,25,.86))",
+                                "linear-gradient(180deg,rgba(0,0,0,.08) 10%,rgba(0,0,0,.78) 100%)",
                             }}
                           />
 
-                          <Avatar
-                            size={66}
-                            src={avatar}
-                            icon={<UserOutlined />}
-                            style={{
-                              position: "absolute",
-                              left: 20,
-                              bottom: 20,
-                              border: "3px solid #fff",
-                              background:
-                                PALETTE.deepSteelBlue,
-                            }}
-                          />
-
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              toggleFavorite(resume.id);
-                            }}
+                          <Tag
+                            color={siteUrl ? "green" : "blue"}
                             style={{
                               position: "absolute",
                               top: 16,
                               right: 16,
-                              width: 40,
-                              height: 40,
-                              borderRadius: 12,
-                              border:
-                                "1px solid rgba(255,255,255,.30)",
-                              background:
-                                "rgba(0,0,0,.18)",
-                              color: "#fff",
-                              cursor: "pointer",
-                              fontSize: 19,
+                              margin: 0,
+                              borderRadius: 999,
+                              fontWeight: 800,
                             }}
                           >
-                            {isFavorite ? "★" : "☆"}
-                          </button>
+                            {siteUrl
+                              ? "Published"
+                              : "Create website"}
+                          </Tag>
 
                           <div
                             style={{
                               position: "absolute",
-                              left: 102,
-                              right: 20,
-                              bottom: 22,
-                              color: "#fff",
+                              left: 22,
+                              right: 22,
+                              bottom: 20,
                             }}
                           >
                             <div
                               style={{
-                                fontSize: 18,
-                                fontWeight: 850,
+                                color:
+                                  PALETTE.skyBlue,
+                                fontSize: 9,
+                                fontWeight: 900,
+                                letterSpacing: ".9px",
                               }}
                             >
-                              {data.personalInfo?.firstName}{" "}
-                              {data.personalInfo?.lastName}
+                              WEB PROFILE
                             </div>
-
+                            <div
+                              style={{
+                                fontSize: 19,
+                                fontWeight: 850,
+                                marginTop: 4,
+                              }}
+                            >
+                              Mening portfolio saytim
+                            </div>
                             <div
                               style={{
                                 marginTop: 4,
-                                fontSize: 11,
-                                opacity: .82,
-                              }}
-                            >
-                              {resume.title ||
-                                data.personalInfo?.professionalTitle ||
-                                "Resume"}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div style={{ padding: 18 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              gap: 10,
-                            }}
-                          >
-                            <Tag
-                              color="cyan"
-                              style={{
-                                margin: 0,
-                                borderRadius: 999,
-                                padding: "3px 9px",
-                              }}
-                            >
-                              {template?.name || "Resume"}
-                            </Tag>
-
-                            <Text
-                              type="secondary"
-                              style={{ fontSize: 11 }}
-                            >
-                              {data.projects?.length || 0} projects
-                            </Text>
-                          </div>
-
-                          <div
-                            style={{
-                              marginTop: 14,
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              gap: 12,
-                            }}
-                          >
-                            <div>
-                              <Text
-                                type="secondary"
-                                style={{ fontSize: 11 }}
-                              >
-                                Click anywhere
-                              </Text>
-                              <div
-                                style={{
-                                  color: colors.text,
-                                  fontWeight: 750,
-                                  marginTop: 3,
-                                }}
-                              >
-                                Resume’ni ochish
-                              </div>
-                            </div>
-
-                            <div
-                              style={{
-                                width: 42,
-                                height: 42,
-                                borderRadius: 12,
-                                display: "grid",
-                                placeItems: "center",
-                                background:
-                                  isDarkMode
-                                    ? "#224B5D"
-                                    : "#EAF5F9",
+                                fontSize: 10,
                                 color:
-                                  PALETTE.deepSteelBlue,
+                                  "rgba(255,255,255,.65)",
                               }}
                             >
-                              <EyeOutlined />
+                              {siteUrl
+                                ? "Card ustiga bosib website’ni oching."
+                                : "Resume’dan public portfolio yarating."}
                             </div>
                           </div>
                         </div>
                       </Card>
-                    </Col>
-                  );
-                })}
-              </Row>
-            </Card>
+                    );
+                  })()}
 
-            {/* PORTFOLIO WEBSITE */}
-            <Card
-              hoverable
-              style={{
-                marginTop: 20,
-                borderRadius: radius + 4,
-                background: isDarkMode
-                  ? "linear-gradient(135deg,#163743,#0E242D)"
-                  : "linear-gradient(135deg,#F5FBFD,#EDF5F7)",
-                border:
-                  `1px solid ${isDarkMode
-                    ? "rgba(255,255,255,.09)"
-                    : "#DCE8EC"
-                  }`,
-              }}
-              styles={{ body: { padding: 0 } }}
-            >
-              {(() => {
-                const entries =
-                  Object.keys(localStorage)
-                    .filter((key) =>
-                      key.startsWith("portfolio:")
-                    )
-                    .map((key) =>
-                      safeParse(
-                        localStorage.getItem(key)
-                      )
-                    )
-                    .filter(Boolean);
-
-                const latest =
-                  entries[entries.length - 1];
-
-                return (
-                  <div
+                  {/* CERTIFICATES / DIPLOMAS */}
+                  <Card
+                    hoverable
+                    style={{
+                      borderRadius: 22,
+                      overflow: "hidden",
+                      background: isDarkMode
+                        ? "#102832"
+                        : "#F7FAFB",
+                      border:
+                        `1px solid ${isDarkMode
+                          ? "rgba(255,255,255,.10)"
+                          : "#DDE7EB"
+                        }`,
+                      cursor:
+                        certificates.length
+                          ? "pointer"
+                          : "default",
+                    }}
                     onClick={() => {
-                      if (latest?.slug) {
-                        window.location.href =
-                          `/p/${latest.slug}`;
-                      } else if (myResumes[0]) {
-                        openPortfolioGenerator(
-                          myResumes[0]
+                      if (certificates[0]) {
+                        openCertificate(
+                          certificates[0]
                         );
                       }
                     }}
-                    style={{
-                      padding: "23px 26px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 20,
-                      flexWrap: "wrap",
-                      cursor: "pointer",
-                    }}
+                    styles={{ body: { padding: 0 } }}
                   >
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 14,
+                        display: "grid",
+                        gridTemplateColumns:
+                          "150px 1fr",
+                        minHeight: 150,
                       }}
                     >
                       <div
                         style={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 15,
-                          display: "grid",
-                          placeItems: "center",
+                          overflow: "hidden",
                           background:
                             isDarkMode
-                              ? "#1F5366"
-                              : "#DDF0F6",
-                          color:
-                            PALETTE.deepSteelBlue,
-                          fontSize: 21,
+                              ? "#0E2028"
+                              : "#EAF1F4",
                         }}
                       >
-                        <GlobalOutlined />
+                        {certificates[0] ? (
+                          <CertificateThumbnail
+                            userId={
+                              currentUser?.id
+                            }
+                            certificateId={
+                              certificates[0].id
+                            }
+                            fallbackData={
+                              certificates[0].data
+                            }
+                            dark={isDarkMode}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              height: "100%",
+                              minHeight: 150,
+                              display:
+                                "grid",
+                              placeItems:
+                                "center",
+                              color:
+                                PALETTE.deepSteelBlue,
+                              fontSize: 36,
+                            }}
+                          >
+                            <FilePdfOutlined />
+                          </div>
+                        )}
                       </div>
 
-                      <div>
+                      <div
+                        style={{
+                          padding:
+                            "19px 18px",
+                          display: "flex",
+                          flexDirection:
+                            "column",
+                          justifyContent:
+                            "center",
+                        }}
+                      >
                         <div
                           style={{
                             color:
                               PALETTE.deepSteelBlue,
-                            fontSize: 10,
-                            fontWeight: 850,
+                            fontSize: 9,
+                            fontWeight: 900,
                             letterSpacing: ".8px",
                           }}
                         >
-                          WEB PAGE
+                          DOCUMENTS
                         </div>
 
                         <Title
                           level={4}
                           style={{
                             margin:
-                              "4px 0 2px",
+                              "4px 0 5px",
                           }}
                         >
-                          Mening portfolio saytim
+                          Sertifikatlar va diplomlar
                         </Title>
 
-                        <Text type="secondary">
-                          Public portfolio va shaxsiy professional website.
+                        <Text
+                          type="secondary"
+                          style={{
+                            fontSize: 10,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {certificates.length
+                            ? `${certificates.length} ta PDF · card ustiga bosib oching`
+                            : "Hali hujjat yuklanmagan"}
                         </Text>
                       </div>
                     </div>
+                  </Card>
+                </div>
+              </Col>
+            </Row>
 
-                    <Button
-                      type="primary"
-                      size="large"
-                      icon={<GlobalOutlined />}
-                      onClick={(event) => {
-                        event.stopPropagation();
+            {/* ONE SHARED ACTION ZONE */}
+            <div
+              style={{
+                marginTop: 22,
+                paddingTop: 18,
+                borderTop:
+                  `1px solid ${isDarkMode
+                    ? "rgba(255,255,255,.08)"
+                    : "#E6EDF0"
+                  }`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{ fontSize: 11 }}
+              >
+                {myResumes.length >= 1
+                  ? "Bitta Resume yaratish limiti faol."
+                  : "Resume yaratib, keyin portfolio va hujjatlaringizni birlashtiring."}
+              </Text>
 
-                        if (latest?.slug) {
-                          window.location.href =
-                            `/p/${latest.slug}`;
-                        } else if (myResumes[0]) {
-                          openPortfolioGenerator(
-                            myResumes[0]
-                          );
-                        }
-                      }}
-                      style={{
-                        minWidth: 200,
-                        height: 50,
-                        borderRadius: 12,
+              <Space wrap size={[8, 8]}>
+                <Upload
+                  accept=".pdf,application/pdf"
+                  multiple={false}
+                  showUploadList={false}
+                  beforeUpload={
+                    prepareCertificateUpload
+                  }
+                >
+                  <Button
+                    icon={<PlusOutlined />}
+                    style={{
+                      height: 40,
+                      borderRadius: 10,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Sertifikat qo‘shish
+                  </Button>
+                </Upload>
+
+                <Button
+                  type={
+                    getLatestLocalPortfolio()?.slug
+                      ? "default"
+                      : "primary"
+                  }
+                  icon={<GlobalOutlined />}
+                  onClick={() => {
+                    const latest =
+                      getLatestLocalPortfolio();
+
+                    if (latest?.slug) {
+                      window.location.href =
+                        `/p/${latest.slug}`;
+                    } else if (myResumes[0]) {
+                      openPortfolioGenerator(
+                        myResumes[0]
+                      );
+                    } else {
+                      message.info(
+                        "Avval resume yarating."
+                      );
+                    }
+                  }}
+                  style={{
+                    height: 40,
+                    borderRadius: 10,
+                    fontWeight: 800,
+                    ...(getLatestLocalPortfolio()?.slug
+                      ? {}
+                      : {
                         background:
                           PALETTE.deepSteelBlue,
                         borderColor:
                           PALETTE.deepSteelBlue,
-                        fontWeight: 800,
-                      }}
-                    >
-                      {latest?.slug
-                        ? "Portfolio’ni ochish"
-                        : "Portfolio yaratish"}
-                    </Button>
-                  </div>
-                );
-              })()}
-            </Card>
-
-            <Card
-              style={{ marginTop: 24, borderRadius: radius, background: isDarkMode ? "#1B3B4B" : "#FFFFFF", border: `1px solid ${isDarkMode ? "rgba(255,255,255,.08)" : "#E4EBEF"}` }}
-              styles={{ body: { padding: 0 } }}
-            >
-              <div style={{ padding: "23px 26px", borderBottom: `1px solid ${colors.divider}`, background: isDarkMode ? "linear-gradient(135deg,#163743,#10252D)" : "linear-gradient(135deg,#F3F8FA,#ECF4F7)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 13, display: "grid", placeItems: "center", background: isDarkMode ? "#1C5368" : "#DFF0F6", color: PALETTE.deepSteelBlue, fontSize: 19 }}><FilePdfOutlined /></div>
-                    <div><Title level={4} style={{ margin: 0 }}>Sertifikatlar va diplomlar</Title><Text type="secondary">Faqat PDF formatdagi hujjatlaringiz.</Text></div>
-                  </div>
-                  <Tag color="blue" style={{ margin: 0, borderRadius: 999 }}>{certificates.length} PDF</Tag>
-                </div>
-              </div>
-              <div style={{ padding: 26 }}>
-                <Upload.Dragger accept=".pdf,application/pdf" multiple={false} showUploadList={false} beforeUpload={prepareCertificateUpload}>
-                  <div style={{ padding: "14px 10px" }}><div style={{ width: 52, height: 52, borderRadius: 15, margin: "0 auto 12px", display: "grid", placeItems: "center", background: isDarkMode ? "#1A4351" : "#EAF5F9", color: PALETTE.deepSteelBlue, fontSize: 24 }}><CloudUploadOutlined /></div><div style={{ fontWeight: 800, color: colors.text }}>PDF faylni shu yerga tashlang</div><div style={{ marginTop: 5, color: colors.textSecondary, fontSize: 12 }}>yoki fayl tanlang · Maksimal 5 MB</div></div>
-                </Upload.Dragger>
-                {certificates.length ? (
-                  <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-                    {certificates.map((certificate) => (
-                      <Col xs={24} sm={12} md={8} lg={6} key={certificate.id}>
-                        <Card
-                          size="small"
-                          hoverable
-                          onClick={() =>
-                            openCertificate(certificate)
-                          }
-                          style={{
-                            borderRadius: 15,
-                            overflow: "hidden",
-                            height: "100%",
-                            cursor: "pointer",
-                          }}
-                          styles={{ body: { padding: 12 } }}
-                        >
-                          <CertificateThumbnail userId={currentUser?.id} certificateId={certificate.id} fallbackData={certificate.data} dark={isDarkMode} />
-                          <div style={{ marginTop: 10 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}><div title={certificate.title || certificate.name} style={{ minWidth: 0, fontWeight: 800, color: colors.text, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{certificate.title || certificate.name}</div><Tag color={certificate.credentialType === "diploma" ? "purple" : "blue"} bordered={false} style={{ margin: 0, fontSize: 9 }}>{certificate.credentialType === "diploma" ? "Diplom" : "Sertifikat"}</Tag></div>
-                            {certificate.issuer && <div title={certificate.issuer} style={{ marginTop: 4, color: colors.textSecondary, fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{certificate.issuer}</div>}
-                            <div style={{ marginTop: 5, color: colors.textSecondary, fontSize: 9 }}>{formatFileSize(certificate.size)}{certificate.issueDate ? ` · ${certificate.issueDate}` : ""}</div>
-                            {certificate.description && <div style={{ marginTop: 7, color: colors.textSecondary, fontSize: 10, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{certificate.description}</div>}
-                            <div
-                              style={{
-                                marginTop: 9,
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                color: colors.textSecondary,
-                                fontSize: 10,
-                              }}
-                            >
-                              <span>Click card to open</span>
-                              <EyeOutlined />
-                            </div>
-                          </div>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
-                ) : <div style={{ marginTop: 18, textAlign: "center", color: colors.textSecondary, fontSize: 12 }}>Hali sertifikat yoki diplom yuklanmagan.</div>}
-              </div>
-            </Card>
+                      }),
+                  }}
+                >
+                  {getLatestLocalPortfolio()?.slug
+                    ? "Portfolio’ni ochish"
+                    : "Portfolio yaratish"}
+                </Button>
+              </Space>
+            </div>
           </Card>
 
           <Row gutter={[18, 18]} style={{ marginTop: 24 }}>
@@ -7635,6 +7833,9 @@ export default function Index() {
           submitCertificate={submitCertificate}
           certificatePreview={certificatePreview}
           setCertificatePreview={setCertificatePreview}
+          closeCertificatePreview={closeCertificatePreview}
+          certificateQr={certificateQr}
+          setCertificateQr={setCertificateQr}
           shareOpen={shareOpen}
           setShareOpen={setShareOpen}
           shareResume={shareResume}
@@ -7943,6 +8144,9 @@ function HubModals({
   submitCertificate,
   certificatePreview,
   setCertificatePreview,
+  closeCertificatePreview,
+  certificateQr,
+  setCertificateQr,
   shareOpen,
   setShareOpen,
   shareResume,
@@ -7955,6 +8159,19 @@ function HubModals({
   setSharedViewOpen,
   sharedViewResume,
 }) {
+  const handleCloseCertificatePreview =
+    closeCertificatePreview ||
+    (() => {
+      if (certificatePreview?.url) {
+        URL.revokeObjectURL(certificatePreview.url);
+      }
+      setCertificatePreview(null);
+    });
+
+  const handleCloseCertificateQr = () => {
+    setCertificateQr?.(null);
+  };
+
   return (
     <>
       <Modal
@@ -7979,7 +8196,7 @@ function HubModals({
 
       <Modal
         open={!!certificatePreview}
-        onCancel={closeCertificatePreview}
+        onCancel={handleCloseCertificatePreview}
         title={certificatePreview?.certificate?.title || "Certificate PDF"}
         footer={null}
         width={980}
@@ -8076,7 +8293,7 @@ function HubModals({
 
       <Modal
         open={!!certificateQr}
-        onCancel={() => setCertificateQr(null)}
+        onCancel={handleCloseCertificateQr}
         title="Certificate QR"
         footer={null}
         centered
