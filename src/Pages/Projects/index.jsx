@@ -43,6 +43,7 @@ import {
   UploadOutlined,
   UserOutlined,
   CheckCircleFilled,
+  GlobalOutlined,
 } from "@ant-design/icons";
 
 import {
@@ -725,7 +726,7 @@ function getLoggedInIdentity() {
   if (
     currentUser &&
     typeof currentUser ===
-      "object"
+    "object"
   ) {
     return {
       id:
@@ -862,16 +863,16 @@ function makeExperienceDates(
   const from =
     item.from
       ? new Date(
-          `${item.from}-01`
-        ).toLocaleDateString(
-          "en-US",
-          {
-            month:
-              "short",
-            year:
-              "numeric",
-          }
-        )
+        `${item.from}-01`
+      ).toLocaleDateString(
+        "en-US",
+        {
+          month:
+            "short",
+          year:
+            "numeric",
+        }
+      )
       : "";
 
   if (item.present) {
@@ -883,23 +884,22 @@ function makeExperienceDates(
   const to =
     item.to
       ? new Date(
-          `${item.to}-01`
-        ).toLocaleDateString(
-          "en-US",
-          {
-            month:
-              "short",
-            year:
-              "numeric",
-          }
-        )
+        `${item.to}-01`
+      ).toLocaleDateString(
+        "en-US",
+        {
+          month:
+            "short",
+          year:
+            "numeric",
+        }
+      )
       : "";
 
-  return `${from}${
-    from || to
-      ? " — "
-      : ""
-  }${to}`;
+  return `${from}${from || to
+    ? " — "
+    : ""
+    }${to}`;
 }
 
 // ============================================================
@@ -936,19 +936,19 @@ function compressImage(
                 Math.min(
                   1,
                   maxWidth /
-                    image.width
+                  image.width
                 );
 
               const width =
                 Math.round(
                   image.width *
-                    scale
+                  scale
                 );
 
               const height =
                 Math.round(
                   image.height *
-                    scale
+                  scale
                 );
 
               const canvas =
@@ -1293,11 +1293,15 @@ export default function Index() {
   });
 
   const [certificatePreview, setCertificatePreview] = useState(null);
+  const [certificateQr, setCertificateQr] = useState(null);
   const [shareResume, setShareResume] = useState(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [qrResume, setQrResume] = useState(null);
   const [sharedViewResume, setSharedViewResume] = useState(null);
   const [sharedViewOpen, setSharedViewOpen] = useState(false);
+
+  const [resumePreviewResume, setResumePreviewResume] = useState(null);
+  const [resumePreviewOpen, setResumePreviewOpen] = useState(false);
 
   const [
     resumeData,
@@ -1320,7 +1324,7 @@ export default function Index() {
   ] = useState(
     TEMPLATES_REGISTRY[0]
       ?.defaultColor ||
-      PALETTE.deepSteelBlue
+    PALETTE.deepSteelBlue
   );
 
   const [
@@ -1418,9 +1422,9 @@ export default function Index() {
   useEffect(() => {
     if (
       designStyle !==
-        "multi" &&
+      "multi" &&
       designStyle !==
-        "creative"
+      "creative"
     ) {
       return;
     }
@@ -1451,11 +1455,11 @@ export default function Index() {
       () => {
         width =
           canvas.width =
-            window.innerWidth;
+          window.innerWidth;
 
         height =
           canvas.height =
-            window.innerHeight;
+          window.innerHeight;
       };
 
     window.addEventListener(
@@ -1655,7 +1659,7 @@ export default function Index() {
               (item) =>
                 String(
                   item.email ||
-                    ""
+                  ""
                 )
                   .trim()
                   .toLowerCase() ===
@@ -1747,7 +1751,7 @@ export default function Index() {
                 parsedData =
                   JSON.parse(
                     resume.resumeData ||
-                      "{}"
+                    "{}"
                   );
               } catch {
                 parsedData =
@@ -1794,11 +1798,92 @@ export default function Index() {
   }, []);
 
   // ==========================================================
+  // RESUME CARD PREVIEW
+  // ==========================================================
+
+  const openResumePreview = (resume) => {
+    setResumePreviewResume({
+      ...resume,
+      parsedData:
+        resume.parsedData ||
+        safeParse(resume.resumeData) ||
+        createEmptyResume(),
+    });
+    setResumePreviewOpen(true);
+  };
+
+  const exportResumePdf = () => {
+    if (!resumePreviewResume) return;
+
+    const sourceNode = document.getElementById(
+      "resume-preview-print"
+    );
+
+    if (!sourceNode) {
+      message.error("Resume preview topilmadi.");
+      return;
+    }
+
+    const printWindow = window.open(
+      "",
+      "_blank",
+      "width=1100,height=900"
+    );
+
+    if (!printWindow) {
+      message.error("PDF oynasini ochib bo‘lmadi.");
+      return;
+    }
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Resume PDF</title>
+          <style>
+            * { box-sizing: border-box; }
+            html, body { margin: 0; padding: 0; background: #fff; }
+            body { font-family: Arial, sans-serif; }
+            @page { size: A4; margin: 0; }
+            .print-root { width: 210mm; min-height: 297mm; margin: 0 auto; }
+          </style>
+        </head>
+        <body>
+          <div class="print-root">${sourceNode.innerHTML}</div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 350);
+  };
+
+  const deleteResumeFromPreview = async () => {
+    if (!resumePreviewResume) return;
+
+    await deleteResume(resumePreviewResume.id);
+    setResumePreviewOpen(false);
+    setResumePreviewResume(null);
+  };
+
+  // ==========================================================
   // OPEN
   // ==========================================================
 
   const openCreateResume =
     () => {
+      if (myResumes.length >= 1) {
+        message.info(
+          "Sizga faqat bitta resume yaratishga ruxsat berilgan."
+        );
+        return;
+      }
+
       setEditingResumeId(
         null
       );
@@ -1838,7 +1923,7 @@ export default function Index() {
 
       setResumeData(
         resume.parsedData ||
-          createEmptyResume()
+        createEmptyResume()
       );
 
       setSelectedTemplateId(
@@ -1847,7 +1932,7 @@ export default function Index() {
 
       setPrimaryColor(
         resume.primaryColor ||
-          PALETTE.deepSteelBlue
+        PALETTE.deepSteelBlue
       );
 
       setBuilderStep(
@@ -1858,6 +1943,46 @@ export default function Index() {
         true
       );
     };
+
+
+
+
+
+  // ______________________
+  const openPortfolioGenerator = (resume) => {
+    try {
+      const portfolioPayload = {
+        resumeId: resume.id,
+        resumeTitle: resume.title || "Resume",
+        templateId: resume.templateId || null,
+        resumeData:
+          resume.parsedData ||
+          safeParse(resume.resumeData) ||
+          createEmptyResume(),
+      };
+
+      localStorage.setItem(
+        "portfolioSourceResume",
+        JSON.stringify(portfolioPayload)
+      );
+
+      window.location.href =
+        `/portfolio/create?resumeId=${encodeURIComponent(
+          resume.id
+        )}`;
+    } catch (error) {
+      console.error(
+        "Portfolio generator error:",
+        error
+      );
+
+      message.error(
+        "Portfolio yaratish sahifasini ochib bo‘lmadi."
+      );
+    }
+  };
+  // ____________________
+
 
   // ==========================================================
   // UPDATE
@@ -1873,11 +1998,11 @@ export default function Index() {
           ...prev,
 
           personalInfo:
-            {
-              ...prev.personalInfo,
-              [field]:
-                value,
-            },
+          {
+            ...prev.personalInfo,
+            [field]:
+              value,
+          },
         })
       );
     };
@@ -1892,11 +2017,11 @@ export default function Index() {
           ...prev,
 
           socialLinks:
-            {
-              ...prev.socialLinks,
-              [field]:
-                value,
-            },
+          {
+            ...prev.socialLinks,
+            [field]:
+              value,
+          },
         })
       );
     };
@@ -1927,7 +2052,7 @@ export default function Index() {
           const updated =
             [
               ...prev[
-                arrayName
+              arrayName
               ],
             ];
 
@@ -1935,7 +2060,7 @@ export default function Index() {
             index
           ] = {
             ...updated[
-              index
+            index
             ],
             [field]:
               value,
@@ -1962,7 +2087,7 @@ export default function Index() {
           [arrayName]:
             [
               ...prev[
-                arrayName
+              arrayName
               ],
               item,
             ],
@@ -2009,13 +2134,13 @@ export default function Index() {
             ];
 
           const item =
-            {
-              ...updated[
-                index
-              ],
-              [field]:
-                value,
-            };
+          {
+            ...updated[
+            index
+            ],
+            [field]:
+              value,
+          };
 
           item.dates =
             makeExperienceDates(
@@ -2053,49 +2178,48 @@ export default function Index() {
             ];
 
           const item =
-            {
-              ...updated[
-                index
-              ],
-              [field]:
-                value,
-            };
+          {
+            ...updated[
+            index
+            ],
+            [field]:
+              value,
+          };
 
           const from =
             item.from
               ? new Date(
-                  `${item.from}-01`
-                ).toLocaleDateString(
-                  "en-US",
-                  {
-                    month:
-                      "short",
-                    year:
-                      "numeric",
-                  }
-                )
+                `${item.from}-01`
+              ).toLocaleDateString(
+                "en-US",
+                {
+                  month:
+                    "short",
+                  year:
+                    "numeric",
+                }
+              )
               : "";
 
           const to =
             item.to
               ? new Date(
-                  `${item.to}-01`
-                ).toLocaleDateString(
-                  "en-US",
-                  {
-                    month:
-                      "short",
-                    year:
-                      "numeric",
-                  }
-                )
+                `${item.to}-01`
+              ).toLocaleDateString(
+                "en-US",
+                {
+                  month:
+                    "short",
+                  year:
+                    "numeric",
+                }
+              )
               : "";
 
           item.dates =
-            `${from}${
-              from || to
-                ? " — "
-                : ""
+            `${from}${from || to
+              ? " — "
+              : ""
             }${to}`;
 
           updated[
@@ -2257,36 +2381,36 @@ export default function Index() {
         new Date().toISOString();
 
       const payload =
-        {
-          userId:
-            String(
-              identity.id
-            ),
+      {
+        userId:
+          String(
+            identity.id
+          ),
 
-          title:
-            String(
-              resumeData.personalInfo?.professionalTitle ||
-                "Resume"
-            ),
+        title:
+          String(
+            resumeData.personalInfo?.professionalTitle ||
+            "Resume"
+          ),
 
-          templateId:
-            String(
-              selectedTemplateId
-            ),
+        templateId:
+          String(
+            selectedTemplateId
+          ),
 
-          primaryColor:
-            String(
-              primaryColor
-            ),
+        primaryColor:
+          String(
+            primaryColor
+          ),
 
-          resumeData:
-            JSON.stringify(
-              resumeData
-            ),
+        resumeData:
+          JSON.stringify(
+            resumeData
+          ),
 
-          updatedAt:
-            now,
-        };
+        updatedAt:
+          now,
+      };
 
       if (
         editingResumeId
@@ -2299,10 +2423,10 @@ export default function Index() {
                 "PUT",
 
               headers:
-                {
-                  "Content-Type":
-                    "application/json",
-                },
+              {
+                "Content-Type":
+                  "application/json",
+              },
 
               body:
                 JSON.stringify(
@@ -2335,10 +2459,10 @@ export default function Index() {
               "POST",
 
             headers:
-              {
-                "Content-Type":
-                  "application/json",
-              },
+            {
+              "Content-Type":
+                "application/json",
+            },
 
             body:
               JSON.stringify({
@@ -2843,6 +2967,59 @@ export default function Index() {
     }
   };
 
+  const shareCertificate = async (certificate) => {
+    const title =
+      certificate.title ||
+      certificate.name ||
+      "Certificate";
+
+    const textToShare = [
+      title,
+      certificate.credentialType === "diploma"
+        ? "Diploma"
+        : "Certificate",
+      certificate.issuer
+        ? `Issuer: ${certificate.issuer}`
+        : "",
+      certificate.issueDate
+        ? `Issued: ${certificate.issueDate}`
+        : "",
+      certificate.credentialId
+        ? `Credential ID: ${certificate.credentialId}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title,
+          text: textToShare,
+        });
+        return;
+      }
+
+      await navigator.clipboard.writeText(textToShare);
+      message.success("Sertifikat ma’lumotlari nusxalandi.");
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        message.error("Sertifikatni ulashib bo‘lmadi.");
+      }
+    }
+  };
+
+  const openCertificateQr = (certificate) => {
+    setCertificateQr(certificate);
+  };
+
+  const closeCertificatePreview = () => {
+    if (certificatePreview?.url) {
+      URL.revokeObjectURL(certificatePreview.url);
+    }
+    setCertificatePreview(null);
+  };
+
   const openCertificate = async (certificate) => {
     try {
       const stored = await getCertificateBlob(
@@ -2961,7 +3138,7 @@ export default function Index() {
       setPrimaryColor(
         TEMPLATES_REGISTRY[0]
           ?.defaultColor ||
-          PALETTE.deepSteelBlue
+        PALETTE.deepSteelBlue
       );
 
       setBuilderStep(
@@ -2981,15 +3158,15 @@ export default function Index() {
 
   const radius =
     designStyle ===
-    "minimal"
+      "minimal"
       ? 0
       : designStyle ===
         "creative"
-      ? 16
-      : designStyle ===
-        "multi"
-      ? 20
-      : 10;
+        ? 16
+        : designStyle ===
+          "multi"
+          ? 20
+          : 10;
 
   const pageBg = isDarkMode
     ? "#112530"
@@ -3003,7 +3180,7 @@ export default function Index() {
     <ConfigProvider
       locale={
         ANTD_LOCALES[
-          lang
+        lang
         ] ||
         ANTD_LOCALES.uz
       }
@@ -3140,32 +3317,32 @@ export default function Index() {
         {(designStyle ===
           "multi" ||
           designStyle ===
-            "creative") && (
-          <canvas
-            ref={
-              canvasRef
-            }
-            style={{
-              position:
-                "fixed",
+          "creative") && (
+            <canvas
+              ref={
+                canvasRef
+              }
+              style={{
+                position:
+                  "fixed",
 
-              inset:
-                0,
+                inset:
+                  0,
 
-              width:
-                "100%",
+                width:
+                  "100%",
 
-              height:
-                "100%",
+                height:
+                  "100%",
 
-              pointerEvents:
-                "none",
+                pointerEvents:
+                  "none",
 
-              zIndex:
-                0,
-            }}
-          />
-        )}
+                zIndex:
+                  0,
+              }}
+            />
+          )}
 
         {/* ====================================================
             PAGE
@@ -3205,10 +3382,9 @@ export default function Index() {
                   : "#FFFFFF",
 
               border:
-                `1px solid ${
-                  isDarkMode
-                    ? "rgba(255,255,255,.08)"
-                    : "#E4EBEF"
+                `1px solid ${isDarkMode
+                  ? "rgba(255,255,255,.08)"
+                  : "#E4EBEF"
                 }`,
             }}
           >
@@ -3251,33 +3427,28 @@ export default function Index() {
                   }
                 </Text>
               </div>
-
               <Button
                 type="primary"
                 size="large"
-                icon={
-                  <PlusOutlined />
-                }
-                onClick={
-                  openCreateResume
-                }
+                icon={<PlusOutlined />}
+                onClick={openCreateResume}
+                disabled={myResumes.length >= 1}
                 style={{
                   background:
-                    PALETTE.deepSteelBlue,
-
+                    myResumes.length >= 1
+                      ? undefined
+                      : PALETTE.deepSteelBlue,
                   borderColor:
-                    PALETTE.deepSteelBlue,
-
-                  height:
-                    48,
-
-                  fontWeight:
-                    700,
+                    myResumes.length >= 1
+                      ? undefined
+                      : PALETTE.deepSteelBlue,
+                  height: 48,
+                  fontWeight: 700,
                 }}
               >
-                {
-                  t.createResume
-                }
+                {myResumes.length >= 1
+                  ? "1 ta resume yaratilgan"
+                  : t.createResume}
               </Button>
             </div>
           </Card>
@@ -3304,127 +3475,587 @@ export default function Index() {
           </Row>
 
           <Card
-            style={{ borderRadius: radius, background: isDarkMode ? "#1B3B4B" : "#FFFFFF", border: `1px solid ${isDarkMode ? "rgba(255,255,255,.08)" : "#E4EBEF"}` }}
+            style={{
+              borderRadius: radius + 6,
+              background: isDarkMode
+                ? "linear-gradient(180deg,#183744,#102630)"
+                : "#FFFFFF",
+              border: `1px solid ${isDarkMode
+                  ? "rgba(255,255,255,.10)"
+                  : "#DDE8EC"
+                }`,
+              boxShadow: isDarkMode
+                ? "0 22px 55px rgba(0,0,0,.14)"
+                : "0 22px 55px rgba(20,45,60,.07)",
+            }}
+            styles={{
+              body: {
+                padding: 18,
+              },
+            }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 15, flexWrap: "wrap", marginBottom: 18 }}>
+            <div
+              style={{
+                padding: "4px 6px 14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
               <div>
-                <Title level={4} style={{ margin: 0 }}>{t.myResumes}</Title>
-                <Text type="secondary">{t.myResumesSubtitle}</Text>
+                <div
+                  style={{
+                    color: PALETTE.deepSteelBlue,
+                    fontSize: 10,
+                    fontWeight: 900,
+                    letterSpacing: ".9px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  CEOBACE PROFILE HUB
+                </div>
+                <Title level={3} style={{ margin: "4px 0 2px" }}>
+                  Sizning ma’lumotlaringiz
+                </Title>
+                <Text type="secondary">
+                  Resume, portfolio va sertifikatlaringiz bitta joyda.
+                </Text>
               </div>
-              <Space orientation="horizontal">
-                <Button icon={<ReloadOutlined />} onClick={loadMyResumes}>{t.refresh}</Button>
-                <Button type="primary" icon={<PlusOutlined />} onClick={openCreateResume}>{t.createResume}</Button>
-              </Space>
             </div>
 
-            <Row gutter={[12, 12]} style={{ marginBottom: 20 }}>
-              <Col xs={24} md={12} lg={14}>
-                <Input size="large" allowClear value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search resumes..." prefix={<span style={{ color: colors.textSecondary }}>⌕</span>} />
-              </Col>
-              <Col xs={12} md={6} lg={5}>
-                <Select size="large" value={resumeFilter} onChange={setResumeFilter} style={{ width: "100%" }} options={[{ label: "All resumes", value: "all" }, { label: "Favorites", value: "favorites" }, { label: "Templates", value: "templates" }]} />
-              </Col>
-              <Col xs={12} md={6} lg={5}>
-                <Select size="large" value={resumeSort} onChange={setResumeSort} style={{ width: "100%" }} options={[{ label: "Newest", value: "newest" }, { label: "Oldest", value: "oldest" }, { label: "A–Z", value: "az" }]} />
-              </Col>
-            </Row>
+            <Card
+              style={{
+                borderRadius: radius + 4,
+                background: isDarkMode ? "#183744" : "#FFFFFF",
+                border: `1px solid ${isDarkMode
+                    ? "rgba(255,255,255,.09)"
+                    : "#E0E8EC"
+                  }`,
+                boxShadow: isDarkMode
+                  ? "0 18px 45px rgba(0,0,0,.12)"
+                  : "0 18px 45px rgba(20,45,60,.06)",
+              }}
+              styles={{ body: { padding: 22 } }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 14,
+                  marginBottom: 18,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      color: PALETTE.deepSteelBlue,
+                      fontWeight: 850,
+                      fontSize: 10,
+                      letterSpacing: ".9px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Your documents
+                  </div>
+                  <Title
+                    level={3}
+                    style={{
+                      margin: "5px 0 2px",
+                    }}
+                  >
+                    {t.myResumes}
+                  </Title>
+                  <Text type="secondary">
+                    Barcha professional ma’lumotlaringiz bitta joyda.
+                  </Text>
+                </div>
 
-            {loadingResumes ? (
-              <div style={{ padding: 70, textAlign: "center" }}><Text type="secondary">Loading...</Text></div>
-            ) : filteredResumes.length === 0 ? (
-              <Empty description={searchQuery ? "No matching resumes" : <div><div>{t.noResumes}</div><Text type="secondary">{t.createFirst}</Text></div>}>
-                {!searchQuery && <Button type="primary" onClick={openCreateResume} icon={<PlusOutlined />}>{t.createResume}</Button>}
-              </Empty>
-            ) : (
-              <Row gutter={[18, 18]}>
+                <Tag
+                  color="blue"
+                  style={{
+                    margin: 0,
+                    borderRadius: 999,
+                    padding: "4px 10px",
+                  }}
+                >
+                  {myResumes.length}/1 Resume
+                </Tag>
+              </div>
+
+              <Row gutter={[16, 16]}>
                 {filteredResumes.map((resume) => {
-                  const data = resume.parsedData || createEmptyResume();
-                  const template = TEMPLATES_REGISTRY.find((item) => item.id === resume.templateId);
-                  const avatar = data.personalInfo?.profilePhoto || currentUser?.avatar || currentUser?.avatarUrl || currentUser?.profilePhoto || currentUser?.image || currentUser?.imageUrl;
-                  const isFavorite = favoriteIds.some((id) => String(id) === String(resume.id));
+                  const data =
+                    resume.parsedData ||
+                    createEmptyResume();
+
+                  const template =
+                    TEMPLATES_REGISTRY.find(
+                      (item) =>
+                        item.id ===
+                        resume.templateId
+                    );
+
+                  const avatar =
+                    data.personalInfo?.profilePhoto ||
+                    currentUser?.avatar ||
+                    currentUser?.avatarUrl ||
+                    currentUser?.profilePhoto ||
+                    currentUser?.image ||
+                    currentUser?.imageUrl;
+
+                  const isFavorite =
+                    favoriteIds.some(
+                      (id) =>
+                        String(id) ===
+                        String(resume.id)
+                    );
 
                   return (
-                    <Col xs={24} sm={12} lg={8} xl={6} key={resume.id}>
+                    <Col
+                      xs={24}
+                      lg={12}
+                      key={resume.id}
+                    >
                       <Card
                         hoverable
-                        style={{ height: "100%", borderRadius: radius + 2, overflow: "hidden", border: `1px solid ${isDarkMode ? "rgba(255,255,255,.08)" : "#E2EBEF"}` }}
-                        styles={{ body: { padding: 14 } }}
-                        cover={
-                          <div style={{ position: "relative", height: 185, overflow: "hidden", background: isDarkMode ? "#142E39" : "#EAF0F3" }}>
-                            {template?.thumbnail ? <img src={template.thumbnail} alt={template.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(.72)" }} /> : <div style={{ height: "100%", display: "grid", placeItems: "center", fontSize: 48 }}><FilePdfOutlined /></div>}
-                            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(8,20,25,.03),rgba(8,20,25,.84))" }} />
-                            <Avatar size={56} src={avatar} icon={<UserOutlined />} style={{ position: "absolute", left: 14, bottom: 14, border: "2px solid #fff", background: PALETTE.deepSteelBlue }} />
-                            <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(resume.id); }} style={{ position: "absolute", top: 11, right: 11, width: 34, height: 34, borderRadius: 10, border: "1px solid rgba(255,255,255,.32)", background: "rgba(255,255,255,.16)", color: "#fff", cursor: "pointer", fontSize: 18 }}>{isFavorite ? "★" : "☆"}</button>
-                            <div style={{ position: "absolute", left: 80, right: 48, bottom: 15, color: "#fff" }}>
-                              <div style={{ fontSize: 14, fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{data.personalInfo?.firstName} {data.personalInfo?.lastName}</div>
-                              <div style={{ fontSize: 10, opacity: .82, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{resume.title || data.personalInfo?.professionalTitle || "Resume"}</div>
+                        onClick={() =>
+                          openResumePreview(resume)
+                        }
+                        style={{
+                          height: "100%",
+                          cursor: "pointer",
+                          borderRadius:
+                            radius + 5,
+                          overflow: "hidden",
+                          border:
+                            `1px solid ${isDarkMode
+                              ? "rgba(255,255,255,.10)"
+                              : "#DCE7EB"
+                            }`,
+                        }}
+                        styles={{
+                          body: {
+                            padding: 0,
+                          },
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: "relative",
+                            minHeight: 260,
+                            overflow: "hidden",
+                            background:
+                              isDarkMode
+                                ? "#102832"
+                                : "#EEF4F6",
+                          }}
+                        >
+                          {template?.thumbnail ? (
+                            <img
+                              src={template.thumbnail}
+                              alt={template.name}
+                              style={{
+                                width: "100%",
+                                height: 260,
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                height: 260,
+                                display: "grid",
+                                placeItems: "center",
+                                fontSize: 64,
+                                color: PALETTE.deepSteelBlue,
+                              }}
+                            >
+                              <FilePdfOutlined />
+                            </div>
+                          )}
+
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              background:
+                                "linear-gradient(180deg,rgba(8,20,25,.03),rgba(8,20,25,.86))",
+                            }}
+                          />
+
+                          <Avatar
+                            size={66}
+                            src={avatar}
+                            icon={<UserOutlined />}
+                            style={{
+                              position: "absolute",
+                              left: 20,
+                              bottom: 20,
+                              border: "3px solid #fff",
+                              background:
+                                PALETTE.deepSteelBlue,
+                            }}
+                          />
+
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleFavorite(resume.id);
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: 16,
+                              right: 16,
+                              width: 40,
+                              height: 40,
+                              borderRadius: 12,
+                              border:
+                                "1px solid rgba(255,255,255,.30)",
+                              background:
+                                "rgba(0,0,0,.18)",
+                              color: "#fff",
+                              cursor: "pointer",
+                              fontSize: 19,
+                            }}
+                          >
+                            {isFavorite ? "★" : "☆"}
+                          </button>
+
+                          <div
+                            style={{
+                              position: "absolute",
+                              left: 102,
+                              right: 20,
+                              bottom: 22,
+                              color: "#fff",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: 18,
+                                fontWeight: 850,
+                              }}
+                            >
+                              {data.personalInfo?.firstName}{" "}
+                              {data.personalInfo?.lastName}
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 4,
+                                fontSize: 11,
+                                opacity: .82,
+                              }}
+                            >
+                              {resume.title ||
+                                data.personalInfo?.professionalTitle ||
+                                "Resume"}
                             </div>
                           </div>
-                        }
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                          <Tag color="cyan" style={{ margin: 0 }}>{template?.name || "Resume"}</Tag>
-                          <Text type="secondary" style={{ fontSize: 10 }}>{data.projects?.length || 0} projects</Text>
                         </div>
-                        <Space orientation="horizontal" wrap size={[5, 6]} style={{ marginTop: 12 }}>
-                          <Button size="small" type="primary" icon={<EyeOutlined />} onClick={() => openExistingResume(resume)}>{t.open}</Button>
-                          <Button size="small" icon={<CopyOutlined />} onClick={() => duplicateResume(resume)}>Duplicate</Button>
-                          <Button size="small" icon={<ShareAltOutlined />} onClick={() => openShareModal(resume)}>Share</Button>
-                          <Button size="small" icon={<QrcodeOutlined />} onClick={() => openQrModal(resume)}>QR</Button>
-                          <Button size="small" danger icon={<DeleteOutlined />} onClick={() => deleteResume(resume.id)}>{t.delete}</Button>
-                        </Space>
+
+                        <div style={{ padding: 18 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              gap: 10,
+                            }}
+                          >
+                            <Tag
+                              color="cyan"
+                              style={{
+                                margin: 0,
+                                borderRadius: 999,
+                                padding: "3px 9px",
+                              }}
+                            >
+                              {template?.name || "Resume"}
+                            </Tag>
+
+                            <Text
+                              type="secondary"
+                              style={{ fontSize: 11 }}
+                            >
+                              {data.projects?.length || 0} projects
+                            </Text>
+                          </div>
+
+                          <div
+                            style={{
+                              marginTop: 14,
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              gap: 12,
+                            }}
+                          >
+                            <div>
+                              <Text
+                                type="secondary"
+                                style={{ fontSize: 11 }}
+                              >
+                                Click anywhere
+                              </Text>
+                              <div
+                                style={{
+                                  color: colors.text,
+                                  fontWeight: 750,
+                                  marginTop: 3,
+                                }}
+                              >
+                                Resume’ni ochish
+                              </div>
+                            </div>
+
+                            <div
+                              style={{
+                                width: 42,
+                                height: 42,
+                                borderRadius: 12,
+                                display: "grid",
+                                placeItems: "center",
+                                background:
+                                  isDarkMode
+                                    ? "#224B5D"
+                                    : "#EAF5F9",
+                                color:
+                                  PALETTE.deepSteelBlue,
+                              }}
+                            >
+                              <EyeOutlined />
+                            </div>
+                          </div>
+                        </div>
                       </Card>
                     </Col>
                   );
                 })}
               </Row>
-            )}
-          </Card>
+            </Card>
 
-          <Card
-            style={{ marginTop: 24, borderRadius: radius, background: isDarkMode ? "#1B3B4B" : "#FFFFFF", border: `1px solid ${isDarkMode ? "rgba(255,255,255,.08)" : "#E4EBEF"}` }}
-            styles={{ body: { padding: 0 } }}
-          >
-            <div style={{ padding: "23px 26px", borderBottom: `1px solid ${colors.divider}`, background: isDarkMode ? "linear-gradient(135deg,#163743,#10252D)" : "linear-gradient(135deg,#F3F8FA,#ECF4F7)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 13, display: "grid", placeItems: "center", background: isDarkMode ? "#1C5368" : "#DFF0F6", color: PALETTE.deepSteelBlue, fontSize: 19 }}><FilePdfOutlined /></div>
-                  <div><Title level={4} style={{ margin: 0 }}>Sertifikatlar va diplomlar</Title><Text type="secondary">Faqat PDF formatdagi hujjatlaringiz.</Text></div>
-                </div>
-                <Tag color="blue" style={{ margin: 0, borderRadius: 999 }}>{certificates.length} PDF</Tag>
-              </div>
-            </div>
-            <div style={{ padding: 26 }}>
-              <Upload.Dragger accept=".pdf,application/pdf" multiple={false} showUploadList={false} beforeUpload={prepareCertificateUpload}>
-                <div style={{ padding: "14px 10px" }}><div style={{ width: 52, height: 52, borderRadius: 15, margin: "0 auto 12px", display: "grid", placeItems: "center", background: isDarkMode ? "#1A4351" : "#EAF5F9", color: PALETTE.deepSteelBlue, fontSize: 24 }}><CloudUploadOutlined /></div><div style={{ fontWeight: 800, color: colors.text }}>PDF faylni shu yerga tashlang</div><div style={{ marginTop: 5, color: colors.textSecondary, fontSize: 12 }}>yoki fayl tanlang · Maksimal 5 MB</div></div>
-              </Upload.Dragger>
-              {certificates.length ? (
-                <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-                  {certificates.map((certificate) => (
-                    <Col xs={24} sm={12} md={8} lg={6} key={certificate.id}>
-                      <Card size="small" hoverable style={{ borderRadius: 15, overflow: "hidden", height: "100%" }} styles={{ body: { padding: 12 } }}>
-                        <CertificateThumbnail userId={currentUser?.id} certificateId={certificate.id} fallbackData={certificate.data} dark={isDarkMode} />
-                        <div style={{ marginTop: 10 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}><div title={certificate.title || certificate.name} style={{ minWidth: 0, fontWeight: 800, color: colors.text, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{certificate.title || certificate.name}</div><Tag color={certificate.credentialType === "diploma" ? "purple" : "blue"} bordered={false} style={{ margin: 0, fontSize: 9 }}>{certificate.credentialType === "diploma" ? "Diplom" : "Sertifikat"}</Tag></div>
-                          {certificate.issuer && <div title={certificate.issuer} style={{ marginTop: 4, color: colors.textSecondary, fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{certificate.issuer}</div>}
-                          <div style={{ marginTop: 5, color: colors.textSecondary, fontSize: 9 }}>{formatFileSize(certificate.size)}{certificate.issueDate ? ` · ${certificate.issueDate}` : ""}</div>
-                          {certificate.description && <div style={{ marginTop: 7, color: colors.textSecondary, fontSize: 10, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{certificate.description}</div>}
-                          <Space orientation="horizontal" size={2} style={{ marginTop: 8 }}><Button type="text" size="small" icon={<EyeOutlined />} onClick={() => openCertificate(certificate)} /><Button type="text" size="small" icon={<DownloadOutlined />} onClick={() => downloadCertificateFile(certificate)} /><Button danger type="text" size="small" icon={<DeleteOutlined />} onClick={() => removeCertificate(certificate.id)} /></Space>
+            {/* PORTFOLIO WEBSITE */}
+            <Card
+              hoverable
+              style={{
+                marginTop: 20,
+                borderRadius: radius + 4,
+                background: isDarkMode
+                  ? "linear-gradient(135deg,#163743,#0E242D)"
+                  : "linear-gradient(135deg,#F5FBFD,#EDF5F7)",
+                border:
+                  `1px solid ${isDarkMode
+                    ? "rgba(255,255,255,.09)"
+                    : "#DCE8EC"
+                  }`,
+              }}
+              styles={{ body: { padding: 0 } }}
+            >
+              {(() => {
+                const entries =
+                  Object.keys(localStorage)
+                    .filter((key) =>
+                      key.startsWith("portfolio:")
+                    )
+                    .map((key) =>
+                      safeParse(
+                        localStorage.getItem(key)
+                      )
+                    )
+                    .filter(Boolean);
+
+                const latest =
+                  entries[entries.length - 1];
+
+                return (
+                  <div
+                    onClick={() => {
+                      if (latest?.slug) {
+                        window.location.href =
+                          `/p/${latest.slug}`;
+                      } else if (myResumes[0]) {
+                        openPortfolioGenerator(
+                          myResumes[0]
+                        );
+                      }
+                    }}
+                    style={{
+                      padding: "23px 26px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 20,
+                      flexWrap: "wrap",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 52,
+                          height: 52,
+                          borderRadius: 15,
+                          display: "grid",
+                          placeItems: "center",
+                          background:
+                            isDarkMode
+                              ? "#1F5366"
+                              : "#DDF0F6",
+                          color:
+                            PALETTE.deepSteelBlue,
+                          fontSize: 21,
+                        }}
+                      >
+                        <GlobalOutlined />
+                      </div>
+
+                      <div>
+                        <div
+                          style={{
+                            color:
+                              PALETTE.deepSteelBlue,
+                            fontSize: 10,
+                            fontWeight: 850,
+                            letterSpacing: ".8px",
+                          }}
+                        >
+                          WEB PAGE
                         </div>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              ) : <div style={{ marginTop: 18, textAlign: "center", color: colors.textSecondary, fontSize: 12 }}>Hali sertifikat yoki diplom yuklanmagan.</div>}
-            </div>
+
+                        <Title
+                          level={4}
+                          style={{
+                            margin:
+                              "4px 0 2px",
+                          }}
+                        >
+                          Mening portfolio saytim
+                        </Title>
+
+                        <Text type="secondary">
+                          Public portfolio va shaxsiy professional website.
+                        </Text>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="primary"
+                      size="large"
+                      icon={<GlobalOutlined />}
+                      onClick={(event) => {
+                        event.stopPropagation();
+
+                        if (latest?.slug) {
+                          window.location.href =
+                            `/p/${latest.slug}`;
+                        } else if (myResumes[0]) {
+                          openPortfolioGenerator(
+                            myResumes[0]
+                          );
+                        }
+                      }}
+                      style={{
+                        minWidth: 200,
+                        height: 50,
+                        borderRadius: 12,
+                        background:
+                          PALETTE.deepSteelBlue,
+                        borderColor:
+                          PALETTE.deepSteelBlue,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {latest?.slug
+                        ? "Portfolio’ni ochish"
+                        : "Portfolio yaratish"}
+                    </Button>
+                  </div>
+                );
+              })()}
+            </Card>
+
+            <Card
+              style={{ marginTop: 24, borderRadius: radius, background: isDarkMode ? "#1B3B4B" : "#FFFFFF", border: `1px solid ${isDarkMode ? "rgba(255,255,255,.08)" : "#E4EBEF"}` }}
+              styles={{ body: { padding: 0 } }}
+            >
+              <div style={{ padding: "23px 26px", borderBottom: `1px solid ${colors.divider}`, background: isDarkMode ? "linear-gradient(135deg,#163743,#10252D)" : "linear-gradient(135deg,#F3F8FA,#ECF4F7)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 13, display: "grid", placeItems: "center", background: isDarkMode ? "#1C5368" : "#DFF0F6", color: PALETTE.deepSteelBlue, fontSize: 19 }}><FilePdfOutlined /></div>
+                    <div><Title level={4} style={{ margin: 0 }}>Sertifikatlar va diplomlar</Title><Text type="secondary">Faqat PDF formatdagi hujjatlaringiz.</Text></div>
+                  </div>
+                  <Tag color="blue" style={{ margin: 0, borderRadius: 999 }}>{certificates.length} PDF</Tag>
+                </div>
+              </div>
+              <div style={{ padding: 26 }}>
+                <Upload.Dragger accept=".pdf,application/pdf" multiple={false} showUploadList={false} beforeUpload={prepareCertificateUpload}>
+                  <div style={{ padding: "14px 10px" }}><div style={{ width: 52, height: 52, borderRadius: 15, margin: "0 auto 12px", display: "grid", placeItems: "center", background: isDarkMode ? "#1A4351" : "#EAF5F9", color: PALETTE.deepSteelBlue, fontSize: 24 }}><CloudUploadOutlined /></div><div style={{ fontWeight: 800, color: colors.text }}>PDF faylni shu yerga tashlang</div><div style={{ marginTop: 5, color: colors.textSecondary, fontSize: 12 }}>yoki fayl tanlang · Maksimal 5 MB</div></div>
+                </Upload.Dragger>
+                {certificates.length ? (
+                  <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
+                    {certificates.map((certificate) => (
+                      <Col xs={24} sm={12} md={8} lg={6} key={certificate.id}>
+                        <Card
+                          size="small"
+                          hoverable
+                          onClick={() =>
+                            openCertificate(certificate)
+                          }
+                          style={{
+                            borderRadius: 15,
+                            overflow: "hidden",
+                            height: "100%",
+                            cursor: "pointer",
+                          }}
+                          styles={{ body: { padding: 12 } }}
+                        >
+                          <CertificateThumbnail userId={currentUser?.id} certificateId={certificate.id} fallbackData={certificate.data} dark={isDarkMode} />
+                          <div style={{ marginTop: 10 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}><div title={certificate.title || certificate.name} style={{ minWidth: 0, fontWeight: 800, color: colors.text, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{certificate.title || certificate.name}</div><Tag color={certificate.credentialType === "diploma" ? "purple" : "blue"} bordered={false} style={{ margin: 0, fontSize: 9 }}>{certificate.credentialType === "diploma" ? "Diplom" : "Sertifikat"}</Tag></div>
+                            {certificate.issuer && <div title={certificate.issuer} style={{ marginTop: 4, color: colors.textSecondary, fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{certificate.issuer}</div>}
+                            <div style={{ marginTop: 5, color: colors.textSecondary, fontSize: 9 }}>{formatFileSize(certificate.size)}{certificate.issueDate ? ` · ${certificate.issueDate}` : ""}</div>
+                            {certificate.description && <div style={{ marginTop: 7, color: colors.textSecondary, fontSize: 10, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{certificate.description}</div>}
+                            <div
+                              style={{
+                                marginTop: 9,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                color: colors.textSecondary,
+                                fontSize: 10,
+                              }}
+                            >
+                              <span>Click card to open</span>
+                              <EyeOutlined />
+                            </div>
+                          </div>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                ) : <div style={{ marginTop: 18, textAlign: "center", color: colors.textSecondary, fontSize: 12 }}>Hali sertifikat yoki diplom yuklanmagan.</div>}
+              </div>
+            </Card>
           </Card>
 
           <Row gutter={[18, 18]} style={{ marginTop: 24 }}>
             <Col xs={24} lg={10}><Card style={{ height: "100%", borderRadius: radius }}><Title level={4} style={{ marginTop: 0 }}>Profile completeness</Title><div style={{ display: "flex", alignItems: "center", gap: 18 }}><Progress type="circle" percent={profileCompletion} size={88} /><div><Text strong>{profileCompletion}% complete</Text><div style={{ marginTop: 7, color: colors.textSecondary, fontSize: 11 }}>Add missing profile data to make your CV stronger.</div><div style={{ marginTop: 8, color: colors.textSecondary, fontSize: 10 }}>{totalExperience} work experiences · {totalProjects} projects</div></div></div></Card></Col>
-            <Col xs={24} lg={14}><Card style={{ height: "100%", borderRadius: radius }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}><Title level={4} style={{ margin: 0 }}>Recent activity</Title><Tag style={{ margin: 0 }}>{activities.length}</Tag></div>{activities.length ? <div style={{ display: "grid", gap: 9 }}>{activities.slice(0,5).map((activity) => <div key={activity.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 11px", borderRadius: 12, background: isDarkMode ? "#122A35" : "#F8FAFB" }}><CheckOutlined style={{ color: PALETTE.deepSteelBlue }} /><div style={{ minWidth: 0 }}><div style={{ color: colors.text, fontWeight: 700, fontSize: 11 }}>{activity.title}</div><div style={{ color: colors.textSecondary, fontSize: 9, marginTop: 2 }}>{activity.subtitle}</div></div><div style={{ marginLeft: "auto", color: colors.textSecondary, fontSize: 8, whiteSpace: "nowrap" }}>{new Date(activity.createdAt).toLocaleDateString()}</div></div>)}</div> : <Text type="secondary">Your resume activity will appear here.</Text>}</Card></Col>
+            <Col xs={24} lg={14}><Card style={{ height: "100%", borderRadius: radius }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}><Title level={4} style={{ margin: 0 }}>Recent activity</Title><Tag style={{ margin: 0 }}>{activities.length}</Tag></div>{activities.length ? <div style={{ display: "grid", gap: 9 }}>{activities.slice(0, 5).map((activity) => <div key={activity.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 11px", borderRadius: 12, background: isDarkMode ? "#122A35" : "#F8FAFB" }}><CheckOutlined style={{ color: PALETTE.deepSteelBlue }} /><div style={{ minWidth: 0 }}><div style={{ color: colors.text, fontWeight: 700, fontSize: 11 }}>{activity.title}</div><div style={{ color: colors.textSecondary, fontSize: 9, marginTop: 2 }}>{activity.subtitle}</div></div><div style={{ marginLeft: "auto", color: colors.textSecondary, fontSize: 8, whiteSpace: "nowrap" }}>{new Date(activity.createdAt).toLocaleDateString()}</div></div>)}</div> : <Text type="secondary">Your resume activity will appear here.</Text>}</Card></Col>
           </Row>
 
-          </div>
+        </div>
         {/* ====================================================
             FULLSCREEN RESUME MODAL
         ==================================================== */}
@@ -3449,11 +4080,10 @@ export default function Index() {
             true
           }
           destroyOnHidden
-          className={`resume-builder-modal ${
-            isDarkMode
-              ? "resume-builder-dark"
-              : "resume-builder-light"
-          }`}
+          className={`resume-builder-modal ${isDarkMode
+            ? "resume-builder-dark"
+            : "resume-builder-light"
+            }`}
           styles={{
             wrapper: {
               padding:
@@ -3531,11 +4161,11 @@ export default function Index() {
                 ? t.createResume
                 : builderStep ===
                   "templates"
-                ? t.chooseTemplate
-                : builderStep ===
-                  "generating"
-                ? t.generating
-                : t.resumeReady}
+                  ? t.chooseTemplate
+                  : builderStep ===
+                    "generating"
+                    ? t.generating
+                    : t.resumeReady}
             </div>
           }
         >
@@ -3793,2414 +4423,698 @@ export default function Index() {
 
               {builderStep ===
                 "form" && (
-                <div
-                  style={{
-                    height:
-                      "100%",
-
-                    overflowY:
-                      "auto",
-
-                    padding:
-                      "34px 40px 120px",
-
-                    background:
-                      colors.page,
-                  }}
-                >
                   <div
                     style={{
-                      width:
+                      height:
                         "100%",
 
-                      maxWidth:
-                        1450,
+                      overflowY:
+                        "auto",
 
-                      margin:
-                        "0 auto",
-                    }}
-                  >
-                    {loadingUser ? (
-                      <div
-                        style={{
-                          minHeight:
-                            600,
+                      padding:
+                        "34px 40px 120px",
 
-                          display:
-                            "flex",
-
-                          flexDirection:
-                            "column",
-
-                          alignItems:
-                            "center",
-
-                          justifyContent:
-                            "center",
-                        }}
-                      >
-                        <div
-                          className="loader-ring"
-                          style={{
-                            borderTopColor:
-                              colors.accent,
-
-                            borderColor:
-                              colors.border,
-                          }}
-                        />
-
-                        <div
-                          style={{
-                            marginTop:
-                              18,
-
-                            fontWeight:
-                              700,
-
-                            color:
-                              colors.text,
-                          }}
-                        >
-                          Loading profile...
-                        </div>
-                      </div>
-                    ) : userError ? (
-                      <Card
-                        style={{
-                          background:
-                            colors.section,
-
-                          borderColor:
-                            colors.border,
-                        }}
-                      >
-                        <Text type="danger">
-                          {
-                            userError
-                          }
-                        </Text>
-                      </Card>
-                    ) : (
-                      <form
-                        onSubmit={
-                          handleFormSubmit
-                        }
-                      >
-                        {/* INFO NOTICE */}
-
-                        <div
-                          style={{
-                            marginBottom:
-                              30,
-
-                            padding:
-                              "18px 20px",
-
-                            borderRadius:
-                              16,
-
-                            background:
-                              colors.accentSoft,
-
-                            border:
-                              `1px solid ${colors.border}`,
-
-                            display:
-                              "flex",
-
-                            alignItems:
-                              "center",
-
-                            gap:
-                              14,
-                          }}
-                        >
-                          <CheckCircleFilled
-                            style={{
-                              color:
-                                colors.accent,
-
-                              fontSize:
-                                22,
-                            }}
-                          />
-
-                          <div>
-                            <div
-                              style={{
-                                fontWeight:
-                                  700,
-
-                                color:
-                                  colors.text,
-                              }}
-                            >
-                              {
-                                t.allYourData
-                              }
-                            </div>
-
-                            <div
-                              style={{
-                                marginTop:
-                                  3,
-
-                                fontSize:
-                                  12,
-
-                                color:
-                                  colors.textSecondary,
-                              }}
-                            >
-                              {
-                                currentUser?.email ||
-                                ""
-                              }
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* PERSONAL */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.personalInfo
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Row
-                            gutter={[
-                              24,
-                              24,
-                            ]}
-                          >
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.firstName
-                                }
-                                value={
-                                  resumeData
-                                    .personalInfo
-                                    .firstName
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updatePersonal(
-                                    "firstName",
-                                    value
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.lastName
-                                }
-                                value={
-                                  resumeData
-                                    .personalInfo
-                                    .lastName
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updatePersonal(
-                                    "lastName",
-                                    value
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <TitleField
-                                label={
-                                  t.professionalTitle
-                                }
-                                value={
-                                  resumeData
-                                    .personalInfo
-                                    .professionalTitle
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updatePersonal(
-                                    "professionalTitle",
-                                    value
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.email
-                                }
-                                value={
-                                  resumeData
-                                    .personalInfo
-                                    .email
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updatePersonal(
-                                    "email",
-                                    value
-                                  )
-                                }
-                                status={
-                                  resumeData
-                                    .personalInfo
-                                    .email &&
-                                  !isValidEmail(
-                                    resumeData
-                                      .personalInfo
-                                      .email
-                                  )
-                                    ? "error"
-                                    : ""
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <PhoneField
-                                label={
-                                  t.phone
-                                }
-                                value={
-                                  resumeData
-                                    .personalInfo
-                                    .phone
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updatePersonal(
-                                    "phone",
-                                    formatPhone(
-                                      value
-                                    )
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <LocationField
-                                label={
-                                  t.location
-                                }
-                                value={
-                                  resumeData
-                                    .personalInfo
-                                    .location
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updatePersonal(
-                                    "location",
-                                    value
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.portfolio
-                                }
-                                value={
-                                  resumeData
-                                    .personalInfo
-                                    .portfolio
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updatePersonal(
-                                    "portfolio",
-                                    formatUrl(
-                                      value
-                                    )
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                12
-                              }
-                              xl={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.website
-                                }
-                                value={
-                                  resumeData
-                                    .socialLinks
-                                    .website
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updateSocial(
-                                    "website",
-                                    formatUrl(
-                                      value
-                                    )
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-                          </Row>
-
-                          {/* PHOTO */}
-
-                          <div
-                            style={{
-                              marginTop:
-                                28,
-
-                              padding:
-                                24,
-
-                              borderRadius:
-                                18,
-
-                              background:
-                                colors.input,
-
-                              border:
-                                `1px solid ${colors.border}`,
-                            }}
-                          >
-                            <div
-                              style={{
-                                display:
-                                  "flex",
-
-                                alignItems:
-                                  "center",
-
-                                gap:
-                                  20,
-
-                                flexWrap:
-                                  "wrap",
-                              }}
-                            >
-                              <Avatar
-                                size={
-                                  104
-                                }
-                                src={
-                                  resumeData
-                                    .personalInfo
-                                    .profilePhoto
-                                }
-                                icon={
-                                  <UserOutlined />
-                                }
-                                style={{
-                                  flexShrink:
-                                    0,
-
-                                  border:
-                                    `3px solid ${colors.border}`,
-                                }}
-                              />
-
-                              <div>
-                                <Text
-                                  strong
-                                  style={{
-                                    display:
-                                      "block",
-
-                                    marginBottom:
-                                      10,
-
-                                    color:
-                                      colors.text,
-
-                                    fontSize:
-                                      14,
-                                  }}
-                                >
-                                  {
-                                    t.profilePhoto
-                                  }
-                                </Text>
-
-                                <Upload
-                                  accept="image/png,image/jpeg,image/webp"
-                                  showUploadList={
-                                    false
-                                  }
-                                  beforeUpload={
-                                    handlePhotoUpload
-                                  }
-                                >
-                                  <Button
-                                    size="large"
-                                    icon={
-                                      <UploadOutlined />
-                                    }
-                                    style={{
-                                      height:
-                                        46,
-                                    }}
-                                  >
-                                    {
-                                      t.uploadPhoto
-                                    }
-                                  </Button>
-                                </Upload>
-
-                                <div
-                                  style={{
-                                    marginTop:
-                                      8,
-
-                                    fontSize:
-                                      12,
-
-                                    color:
-                                      colors.textSecondary,
-                                  }}
-                                >
-                                  JPG, PNG, WEBP
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </ResumeSectionDark>
-
-                        {/* SUMMARY */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.summary
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Input.TextArea
-                            rows={
-                              7
-                            }
-                            value={
-                              resumeData.professionalSummary
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              updateField(
-                                "professionalSummary",
-                                e.target
-                                  .value
-                              )
-                            }
-                            style={{
-                              background:
-                                colors.input,
-
-                              color:
-                                colors.text,
-
-                              borderColor:
-                                colors.border,
-
-                              fontSize:
-                                15,
-
-                              padding:
-                                15,
-                            }}
-                          />
-                        </ResumeSectionDark>
-
-                        {/* EXPERIENCE */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.workExperience
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Space
-                            direction="vertical"
-                            size={
-                              22
-                            }
-                            style={{
-                              width:
-                                "100%",
-                            }}
-                          >
-                            {resumeData.workExperience.map(
-                              (
-                                item,
-                                index
-                              ) => (
-                                <div
-                                  key={
-                                    index
-                                  }
-                                  style={{
-                                    padding:
-                                      24,
-
-                                    borderRadius:
-                                      18,
-
-                                    background:
-                                      colors.section,
-
-                                    border:
-                                      `1px solid ${colors.border}`,
-
-                                    boxShadow:
-                                      isDarkMode
-                                        ? "0 8px 24px rgba(0,0,0,.12)"
-                                        : "0 5px 18px rgba(0,0,0,.04)",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      display:
-                                        "flex",
-
-                                      alignItems:
-                                        "center",
-
-                                      justifyContent:
-                                        "space-between",
-
-                                      marginBottom:
-                                        22,
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontSize:
-                                          17,
-
-                                        fontWeight:
-                                          800,
-
-                                        color:
-                                          colors.text,
-                                      }}
-                                    >
-                                      {
-                                        t.workExperience
-                                      }{" "}
-                                      #
-                                      {index +
-                                        1}
-                                    </div>
-
-                                    <Button
-                                      danger
-                                      icon={
-                                        <DeleteOutlined />
-                                      }
-                                      onClick={() =>
-                                        removeArrayItem(
-                                          "workExperience",
-                                          index
-                                        )
-                                      }
-                                    >
-                                      {
-                                        t.remove
-                                      }
-                                    </Button>
-                                  </div>
-
-                                  <Row
-                                    gutter={[
-                                      20,
-                                      20,
-                                    ]}
-                                  >
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.position
-                                        }
-                                        value={
-                                          item.position ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateExperience(
-                                            index,
-                                            "position",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.company
-                                        }
-                                        value={
-                                          item.company ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateExperience(
-                                            index,
-                                            "company",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        8
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.location
-                                        }
-                                        value={
-                                          item.location ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateExperience(
-                                            index,
-                                            "location",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        8
-                                      }
-                                    >
-                                      <MonthField
-                                        label={
-                                          t.from
-                                        }
-                                        value={
-                                          item.from ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateExperience(
-                                            index,
-                                            "from",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        8
-                                      }
-                                    >
-                                      <MonthField
-                                        label={
-                                          t.to
-                                        }
-                                        value={
-                                          item.to ||
-                                          ""
-                                        }
-                                        disabled={
-                                          !!item.present
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateExperience(
-                                            index,
-                                            "to",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      span={
-                                        24
-                                      }
-                                    >
-                                      <label
-                                        style={{
-                                          display:
-                                            "flex",
-
-                                          alignItems:
-                                            "center",
-
-                                          gap:
-                                            10,
-
-                                          color:
-                                            colors.text,
-
-                                          cursor:
-                                            "pointer",
-
-                                          fontSize:
-                                            14,
-                                        }}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={
-                                            !!item.present
-                                          }
-                                          onChange={(
-                                            e
-                                          ) =>
-                                            updateExperience(
-                                              index,
-                                              "present",
-                                              e
-                                                .target
-                                                .checked
-                                            )
-                                          }
-                                        />
-
-                                        {
-                                          t.present
-                                        }
-                                      </label>
-                                    </Col>
-
-                                    <Col
-                                      span={
-                                        24
-                                      }
-                                    >
-                                      <Text
-                                        strong
-                                        style={{
-                                          display:
-                                            "block",
-
-                                          marginBottom:
-                                            9,
-
-                                          color:
-                                            colors.text,
-                                        }}
-                                      >
-                                        {
-                                          t.responsibilities
-                                        }
-                                      </Text>
-
-                                      <Input.TextArea
-                                        rows={
-                                          6
-                                        }
-                                        value={
-                                          item.responsibilities ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          e
-                                        ) =>
-                                          updateExperience(
-                                            index,
-                                            "responsibilities",
-                                            e.target
-                                              .value
-                                          )
-                                        }
-                                        style={{
-                                          background:
-                                            colors.input,
-
-                                          color:
-                                            colors.text,
-
-                                          borderColor:
-                                            colors.border,
-
-                                          fontSize:
-                                            15,
-
-                                          padding:
-                                            15,
-                                        }}
-                                      />
-                                    </Col>
-                                  </Row>
-                                </div>
-                              )
-                            )}
-
-                            <Button
-                              type="dashed"
-                              size="large"
-                              icon={
-                                <PlusOutlined />
-                              }
-                              onClick={() =>
-                                addArrayItem(
-                                  "workExperience",
-                                  {
-                                    position:
-                                      "",
-                                    company:
-                                      "",
-                                    location:
-                                      "",
-                                    from:
-                                      "",
-                                    to:
-                                      "",
-                                    present:
-                                      false,
-                                    dates:
-                                      "",
-                                    responsibilities:
-                                      "",
-                                  }
-                                )
-                              }
-                              style={{
-                                height:
-                                  54,
-
-                                width:
-                                  "100%",
-                              }}
-                            >
-                              {
-                                t.addExperience
-                              }
-                            </Button>
-                          </Space>
-                        </ResumeSectionDark>
-
-                        {/* EDUCATION */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.education
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Space
-                            direction="vertical"
-                            size={
-                              22
-                            }
-                            style={{
-                              width:
-                                "100%",
-                            }}
-                          >
-                            {resumeData.education.map(
-                              (
-                                item,
-                                index
-                              ) => (
-                                <div
-                                  key={
-                                    index
-                                  }
-                                  style={{
-                                    padding:
-                                      24,
-
-                                    borderRadius:
-                                      18,
-
-                                    background:
-                                      colors.section,
-
-                                    border:
-                                      `1px solid ${colors.border}`,
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      display:
-                                        "flex",
-
-                                      justifyContent:
-                                        "space-between",
-
-                                      alignItems:
-                                        "center",
-
-                                      marginBottom:
-                                        22,
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontSize:
-                                          17,
-
-                                        fontWeight:
-                                          800,
-
-                                        color:
-                                          colors.text,
-                                      }}
-                                    >
-                                      {
-                                        t.education
-                                      }{" "}
-                                      #
-                                      {index +
-                                        1}
-                                    </div>
-
-                                    <Button
-                                      danger
-                                      icon={
-                                        <DeleteOutlined />
-                                      }
-                                      onClick={() =>
-                                        removeArrayItem(
-                                          "education",
-                                          index
-                                        )
-                                      }
-                                    >
-                                      {
-                                        t.remove
-                                      }
-                                    </Button>
-                                  </div>
-
-                                  <Row
-                                    gutter={[
-                                      20,
-                                      20,
-                                    ]}
-                                  >
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.degree
-                                        }
-                                        value={
-                                          item.degree ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateEducation(
-                                            index,
-                                            "degree",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.institution
-                                        }
-                                        value={
-                                          item.institution ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateEducation(
-                                            index,
-                                            "institution",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        12
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <MonthField
-                                        label={
-                                          t.from
-                                        }
-                                        value={
-                                          item.from ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateEducation(
-                                            index,
-                                            "from",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        12
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <MonthField
-                                        label={
-                                          t.to
-                                        }
-                                        value={
-                                          item.to ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateEducation(
-                                            index,
-                                            "to",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-                                  </Row>
-                                </div>
-                              )
-                            )}
-
-                            <Button
-                              type="dashed"
-                              size="large"
-                              icon={
-                                <PlusOutlined />
-                              }
-                              onClick={() =>
-                                addArrayItem(
-                                  "education",
-                                  {
-                                    degree:
-                                      "",
-                                    institution:
-                                      "",
-                                    from:
-                                      "",
-                                    to:
-                                      "",
-                                    dates:
-                                      "",
-                                  }
-                                )
-                              }
-                              style={{
-                                height:
-                                  54,
-
-                                width:
-                                  "100%",
-                              }}
-                            >
-                              {
-                                t.addEducation
-                              }
-                            </Button>
-                          </Space>
-                        </ResumeSectionDark>
-
-                        {/* SKILLS */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.skills
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <SkillChips
-                            skills={
-                              resumeData.skills
-                            }
-                            onAdd={(
-                              value
-                            ) => {
-                              const clean =
-                                value.trim();
-
-                              if (
-                                !clean
-                              )
-                                return;
-
-                              const exists =
-                                resumeData.skills.some(
-                                  (
-                                    item
-                                  ) =>
-                                    item.name
-                                      .toLowerCase() ===
-                                    clean.toLowerCase()
-                                );
-
-                              if (
-                                !exists
-                              ) {
-                                addArrayItem(
-                                  "skills",
-                                  {
-                                    name:
-                                      clean,
-                                    level:
-                                      70,
-                                  }
-                                );
-                              }
-                            }}
-                            onRemove={(
-                              index
-                            ) =>
-                              removeArrayItem(
-                                "skills",
-                                index
-                              )
-                            }
-                            onLevelChange={(
-                              index,
-                              level
-                            ) =>
-                              updateArrayItem(
-                                "skills",
-                                index,
-                                "level",
-                                Number(
-                                  level
-                                )
-                              )
-                            }
-                            placeholder={
-                              t.skillPlaceholder
-                            }
-                            colors={
-                              colors
-                            }
-                          />
-                        </ResumeSectionDark>
-
-                        {/* LANGUAGES */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.languages
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <LanguageChips
-                            languages={
-                              resumeData.languages
-                            }
-                            onAdd={(
-                              value
-                            ) => {
-                              const clean =
-                                value.trim();
-
-                              if (
-                                !clean
-                              )
-                                return;
-
-                              const exists =
-                                resumeData.languages.some(
-                                  (
-                                    item
-                                  ) =>
-                                    item.language
-                                      .toLowerCase() ===
-                                    clean.toLowerCase()
-                                );
-
-                              if (
-                                !exists
-                              ) {
-                                addArrayItem(
-                                  "languages",
-                                  {
-                                    language:
-                                      clean,
-                                    level:
-                                      "",
-                                  }
-                                );
-                              }
-                            }}
-                            onRemove={(
-                              index
-                            ) =>
-                              removeArrayItem(
-                                "languages",
-                                index
-                              )
-                            }
-                            onLevelChange={(
-                              index,
-                              level
-                            ) =>
-                              updateArrayItem(
-                                "languages",
-                                index,
-                                "level",
-                                level
-                              )
-                            }
-                            placeholder={
-                              t.languagePlaceholder
-                            }
-                            colors={
-                              colors
-                            }
-                          />
-                        </ResumeSectionDark>
-
-                        {/* PROJECTS */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.projects
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Space
-                            direction="vertical"
-                            size={
-                              22
-                            }
-                            style={{
-                              width:
-                                "100%",
-                            }}
-                          >
-                            {resumeData.projects.map(
-                              (
-                                item,
-                                index
-                              ) => (
-                                <div
-                                  key={
-                                    index
-                                  }
-                                  style={{
-                                    padding:
-                                      24,
-
-                                    borderRadius:
-                                      18,
-
-                                    background:
-                                      colors.section,
-
-                                    border:
-                                      `1px solid ${colors.border}`,
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      display:
-                                        "flex",
-
-                                      alignItems:
-                                        "center",
-
-                                      justifyContent:
-                                        "space-between",
-
-                                      marginBottom:
-                                        22,
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontSize:
-                                          17,
-
-                                        fontWeight:
-                                          800,
-
-                                        color:
-                                          colors.text,
-                                      }}
-                                    >
-                                      {
-                                        t.projects
-                                      }{" "}
-                                      #
-                                      {index +
-                                        1}
-                                    </div>
-
-                                    <Button
-                                      danger
-                                      icon={
-                                        <DeleteOutlined />
-                                      }
-                                      onClick={() =>
-                                        removeArrayItem(
-                                          "projects",
-                                          index
-                                        )
-                                      }
-                                    >
-                                      {
-                                        t.remove
-                                      }
-                                    </Button>
-                                  </div>
-
-                                  <Row
-                                    gutter={[
-                                      20,
-                                      20,
-                                    ]}
-                                  >
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.projectName
-                                        }
-                                        value={
-                                          item.name ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateArrayItem(
-                                            "projects",
-                                            index,
-                                            "name",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        12
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.projectLink
-                                        }
-                                        value={
-                                          item.link ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateArrayItem(
-                                            "projects",
-                                            index,
-                                            "link",
-                                            formatUrl(
-                                              value
-                                            )
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      span={
-                                        24
-                                      }
-                                    >
-                                      <Text
-                                        strong
-                                        style={{
-                                          display:
-                                            "block",
-
-                                          marginBottom:
-                                            9,
-
-                                          color:
-                                            colors.text,
-                                        }}
-                                      >
-                                        {
-                                          t.description
-                                        }
-                                      </Text>
-
-                                      <Input.TextArea
-                                        rows={
-                                          5
-                                        }
-                                        value={
-                                          item.description ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          e
-                                        ) =>
-                                          updateArrayItem(
-                                            "projects",
-                                            index,
-                                            "description",
-                                            e.target
-                                              .value
-                                          )
-                                        }
-                                        style={{
-                                          background:
-                                            colors.input,
-
-                                          color:
-                                            colors.text,
-
-                                          borderColor:
-                                            colors.border,
-
-                                          padding:
-                                            15,
-
-                                          fontSize:
-                                            15,
-                                        }}
-                                      />
-                                    </Col>
-                                  </Row>
-                                </div>
-                              )
-                            )}
-
-                            <Button
-                              type="dashed"
-                              size="large"
-                              icon={
-                                <PlusOutlined />
-                              }
-                              onClick={() =>
-                                addArrayItem(
-                                  "projects",
-                                  {
-                                    name:
-                                      "",
-                                    link:
-                                      "",
-                                    description:
-                                      "",
-                                  }
-                                )
-                              }
-                              style={{
-                                height:
-                                  54,
-
-                                width:
-                                  "100%",
-                              }}
-                            >
-                              {
-                                t.addProject
-                              }
-                            </Button>
-                          </Space>
-                        </ResumeSectionDark>
-
-                        {/* CERTIFICATES */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.certificates
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Space
-                            direction="vertical"
-                            size={
-                              18
-                            }
-                            style={{
-                              width:
-                                "100%",
-                            }}
-                          >
-                            {resumeData.certifications.map(
-                              (
-                                item,
-                                index
-                              ) => (
-                                <div
-                                  key={
-                                    index
-                                  }
-                                  style={{
-                                    padding:
-                                      24,
-
-                                    borderRadius:
-                                      18,
-
-                                    background:
-                                      colors.section,
-
-                                    border:
-                                      `1px solid ${colors.border}`,
-                                  }}
-                                >
-                                  <Row
-                                    gutter={[
-                                      20,
-                                      20,
-                                    ]}
-                                    align="bottom"
-                                  >
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        8
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.certificate
-                                        }
-                                        value={
-                                          item.name ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateArrayItem(
-                                            "certifications",
-                                            index,
-                                            "name",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        24
-                                      }
-                                      md={
-                                        8
-                                      }
-                                    >
-                                      <LargeField
-                                        label={
-                                          t.organization
-                                        }
-                                        value={
-                                          item.organization ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateArrayItem(
-                                            "certifications",
-                                            index,
-                                            "organization",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        18
-                                      }
-                                      md={
-                                        6
-                                      }
-                                    >
-                                      <MonthField
-                                        label={
-                                          t.date
-                                        }
-                                        value={
-                                          item.date ||
-                                          ""
-                                        }
-                                        onChange={(
-                                          value
-                                        ) =>
-                                          updateArrayItem(
-                                            "certifications",
-                                            index,
-                                            "date",
-                                            value
-                                          )
-                                        }
-                                        colors={
-                                          colors
-                                        }
-                                      />
-                                    </Col>
-
-                                    <Col
-                                      xs={
-                                        6
-                                      }
-                                      md={
-                                        2
-                                      }
-                                    >
-                                      <Button
-                                        danger
-                                        icon={
-                                          <DeleteOutlined />
-                                        }
-                                        onClick={() =>
-                                          removeArrayItem(
-                                            "certifications",
-                                            index
-                                          )
-                                        }
-                                      />
-                                    </Col>
-                                  </Row>
-                                </div>
-                              )
-                            )}
-
-                            <Button
-                              type="dashed"
-                              size="large"
-                              icon={
-                                <PlusOutlined />
-                              }
-                              onClick={() =>
-                                addArrayItem(
-                                  "certifications",
-                                  {
-                                    name:
-                                      "",
-                                    organization:
-                                      "",
-                                    date:
-                                      "",
-                                  }
-                                )
-                              }
-                              style={{
-                                height:
-                                  54,
-
-                                width:
-                                  "100%",
-                              }}
-                            >
-                              {
-                                t.addCertificate
-                              }
-                            </Button>
-                          </Space>
-                        </ResumeSectionDark>
-
-                        {/* SOCIAL */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.socialLinks
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Row
-                            gutter={[
-                              20,
-                              20,
-                            ]}
-                          >
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.github
-                                }
-                                value={
-                                  resumeData
-                                    .socialLinks
-                                    .github
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updateSocial(
-                                    "github",
-                                    formatUrl(
-                                      value
-                                    )
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.linkedin
-                                }
-                                value={
-                                  resumeData
-                                    .socialLinks
-                                    .linkedin
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updateSocial(
-                                    "linkedin",
-                                    formatUrl(
-                                      value
-                                    )
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-
-                            <Col
-                              xs={
-                                24
-                              }
-                              md={
-                                8
-                              }
-                            >
-                              <LargeField
-                                label={
-                                  t.telegram
-                                }
-                                value={
-                                  resumeData
-                                    .socialLinks
-                                    .telegram
-                                }
-                                onChange={(
-                                  value
-                                ) =>
-                                  updateSocial(
-                                    "telegram",
-                                    formatUrl(
-                                      value
-                                    )
-                                  )
-                                }
-                                colors={
-                                  colors
-                                }
-                              />
-                            </Col>
-                          </Row>
-                        </ResumeSectionDark>
-
-                        {/* HOBBIES */}
-
-                        <ResumeSectionDark
-                          title={
-                            t.hobbies
-                          }
-                          colors={
-                            colors
-                          }
-                        >
-                          <Input.TextArea
-                            rows={
-                              5
-                            }
-                            value={
-                              resumeData.hobbies.join(
-                                ", "
-                              )
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              updateField(
-                                "hobbies",
-                                e.target.value
-                                  .split(
-                                    ","
-                                  )
-                                  .map(
-                                    (
-                                      item
-                                    ) =>
-                                      item.trim()
-                                  )
-                                  .filter(
-                                    Boolean
-                                  )
-                              )
-                            }
-                            style={{
-                              background:
-                                colors.input,
-
-                              color:
-                                colors.text,
-
-                              borderColor:
-                                colors.border,
-
-                              padding:
-                                15,
-
-                              fontSize:
-                                15,
-                            }}
-                          />
-                        </ResumeSectionDark>
-
-                        {/* STICKY FOOTER */}
-
-                        <div
-                          style={{
-                            bottom:
-                              0,
-
-                            zIndex:
-                              30,
-
-                            marginTop:
-                              30,
-
-                            padding:
-                              "18px 0",
-
-                            background:
-                              colors.page,
-
-                            borderTop:
-                              `1px solid ${colors.border}`,
-
-                            display:
-                              "flex",
-
-                            justifyContent:
-                              "space-between",
-
-                            alignItems:
-                              "center",
-
-                            gap:
-                              15,
-                          }}
-                        >
-                          <Button
-                            size="large"
-                            icon={
-                              <ReloadOutlined />
-                            }
-                            onClick={
-                              loadCurrentUser
-                            }
-                          >
-                            {
-                              t.reloadProfile
-                            }
-                          </Button>
-
-                          <Button
-                            type="primary"
-                            size="large"
-                            htmlType="submit"
-                            style={{
-                              height:
-                                52,
-
-                              padding:
-                                "0 30px",
-
-                              background:
-                                PALETTE.deepSteelBlue,
-
-                              borderColor:
-                                PALETTE.deepSteelBlue,
-
-                              fontWeight:
-                                800,
-                            }}
-                          >
-                            {
-                              t.continue
-                            }{" "}
-                            →
-                          </Button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* =================================================
-                  TEMPLATE SELECTION
-              ================================================= */}
-
-              {builderStep ===
-                "templates" && (
-                <div
-                  style={{
-                    height:
-                      "100%",
-
-                    overflowY:
-                      "auto",
-
-                    padding:
-                      "40px 40px 100px",
-
-                    background:
-                      colors.page,
-                  }}
-                >
-                  <div
-                    style={{
-                      maxWidth:
-                        1450,
-
-                      margin:
-                        "0 auto",
+                      background:
+                        colors.page,
                     }}
                   >
                     <div
                       style={{
-                        marginBottom:
-                          30,
+                        width:
+                          "100%",
+
+                        maxWidth:
+                          1450,
+
+                        margin:
+                          "0 auto",
                       }}
                     >
-                      <Title
-                        level={
-                          2
-                        }
-                        style={{
-                          margin:
-                            0,
+                      {loadingUser ? (
+                        <div
+                          style={{
+                            minHeight:
+                              600,
 
-                          color:
-                            colors.text,
-                        }}
-                      >
-                        {
-                          t.chooseTemplate
-                        }
-                      </Title>
+                            display:
+                              "flex",
 
-                      <Text
-                        style={{
-                          color:
-                            colors.textSecondary,
-                        }}
-                      >
-                        10 ta professional template'dan birini tanlang.
-                      </Text>
-                    </div>
+                            flexDirection:
+                              "column",
 
-                    <Row
-                      gutter={[
-                        24,
-                        24,
-                      ]}
-                    >
-                      {TEMPLATES_REGISTRY.map(
-                        (
-                          template
-                        ) => {
-                          const selected =
-                            template.id ===
-                            selectedTemplateId;
+                            alignItems:
+                              "center",
 
-                          return (
-                            <Col
-                              key={
-                                template.id
-                              }
-                              xs={
-                                24
-                              }
-                              sm={
-                                12
-                              }
-                              md={
-                                8
-                              }
-                              lg={
-                                6
-                              }
-                              xl={
-                                4
-                              }
-                            >
+                            justifyContent:
+                              "center",
+                          }}
+                        >
+                          <div
+                            className="loader-ring"
+                            style={{
+                              borderTopColor:
+                                colors.accent,
+
+                              borderColor:
+                                colors.border,
+                            }}
+                          />
+
+                          <div
+                            style={{
+                              marginTop:
+                                18,
+
+                              fontWeight:
+                                700,
+
+                              color:
+                                colors.text,
+                            }}
+                          >
+                            Loading profile...
+                          </div>
+                        </div>
+                      ) : userError ? (
+                        <Card
+                          style={{
+                            background:
+                              colors.section,
+
+                            borderColor:
+                              colors.border,
+                          }}
+                        >
+                          <Text type="danger">
+                            {
+                              userError
+                            }
+                          </Text>
+                        </Card>
+                      ) : (
+                        <form
+                          onSubmit={
+                            handleFormSubmit
+                          }
+                        >
+                          {/* INFO NOTICE */}
+
+                          <div
+                            style={{
+                              marginBottom:
+                                30,
+
+                              padding:
+                                "18px 20px",
+
+                              borderRadius:
+                                16,
+
+                              background:
+                                colors.accentSoft,
+
+                              border:
+                                `1px solid ${colors.border}`,
+
+                              display:
+                                "flex",
+
+                              alignItems:
+                                "center",
+
+                              gap:
+                                14,
+                            }}
+                          >
+                            <CheckCircleFilled
+                              style={{
+                                color:
+                                  colors.accent,
+
+                                fontSize:
+                                  22,
+                              }}
+                            />
+
+                            <div>
                               <div
-                                onClick={() =>
-                                  selectTemplate(
-                                    template
-                                  )
-                                }
                                 style={{
-                                  background:
-                                    colors.section,
+                                  fontWeight:
+                                    700,
 
-                                  border:
-                                    selected
-                                      ? `2px solid ${primaryColor}`
-                                      : `1px solid ${colors.border}`,
-
-                                  borderRadius:
-                                    18,
-
-                                  overflow:
-                                    "hidden",
-
-                                  cursor:
-                                    "pointer",
-
-                                  transition:
-                                    "all .2s ease",
-
-                                  boxShadow:
-                                    selected
-                                      ? `0 12px 30px rgba(77,156,191,.16)`
-                                      : "none",
+                                  color:
+                                    colors.text,
                                 }}
                               >
-                                <div
+                                {
+                                  t.allYourData
+                                }
+                              </div>
+
+                              <div
+                                style={{
+                                  marginTop:
+                                    3,
+
+                                  fontSize:
+                                    12,
+
+                                  color:
+                                    colors.textSecondary,
+                                }}
+                              >
+                                {
+                                  currentUser?.email ||
+                                  ""
+                                }
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* PERSONAL */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.personalInfo
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Row
+                              gutter={[
+                                24,
+                                24,
+                              ]}
+                            >
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.firstName
+                                  }
+                                  value={
+                                    resumeData
+                                      .personalInfo
+                                      .firstName
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updatePersonal(
+                                      "firstName",
+                                      value
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.lastName
+                                  }
+                                  value={
+                                    resumeData
+                                      .personalInfo
+                                      .lastName
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updatePersonal(
+                                      "lastName",
+                                      value
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <TitleField
+                                  label={
+                                    t.professionalTitle
+                                  }
+                                  value={
+                                    resumeData
+                                      .personalInfo
+                                      .professionalTitle
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updatePersonal(
+                                      "professionalTitle",
+                                      value
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.email
+                                  }
+                                  value={
+                                    resumeData
+                                      .personalInfo
+                                      .email
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updatePersonal(
+                                      "email",
+                                      value
+                                    )
+                                  }
+                                  status={
+                                    resumeData
+                                      .personalInfo
+                                      .email &&
+                                      !isValidEmail(
+                                        resumeData
+                                          .personalInfo
+                                          .email
+                                      )
+                                      ? "error"
+                                      : ""
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <PhoneField
+                                  label={
+                                    t.phone
+                                  }
+                                  value={
+                                    resumeData
+                                      .personalInfo
+                                      .phone
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updatePersonal(
+                                      "phone",
+                                      formatPhone(
+                                        value
+                                      )
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <LocationField
+                                  label={
+                                    t.location
+                                  }
+                                  value={
+                                    resumeData
+                                      .personalInfo
+                                      .location
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updatePersonal(
+                                      "location",
+                                      value
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.portfolio
+                                  }
+                                  value={
+                                    resumeData
+                                      .personalInfo
+                                      .portfolio
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updatePersonal(
+                                      "portfolio",
+                                      formatUrl(
+                                        value
+                                      )
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  12
+                                }
+                                xl={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.website
+                                  }
+                                  value={
+                                    resumeData
+                                      .socialLinks
+                                      .website
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updateSocial(
+                                      "website",
+                                      formatUrl(
+                                        value
+                                      )
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+                            </Row>
+
+                            {/* PHOTO */}
+
+                            <div
+                              style={{
+                                marginTop:
+                                  28,
+
+                                padding:
+                                  24,
+
+                                borderRadius:
+                                  18,
+
+                                background:
+                                  colors.input,
+
+                                border:
+                                  `1px solid ${colors.border}`,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display:
+                                    "flex",
+
+                                  alignItems:
+                                    "center",
+
+                                  gap:
+                                    20,
+
+                                  flexWrap:
+                                    "wrap",
+                                }}
+                              >
+                                <Avatar
+                                  size={
+                                    104
+                                  }
+                                  src={
+                                    resumeData
+                                      .personalInfo
+                                      .profilePhoto
+                                  }
+                                  icon={
+                                    <UserOutlined />
+                                  }
                                   style={{
-                                    position:
-                                      "relative",
+                                    flexShrink:
+                                      0,
 
-                                    aspectRatio:
-                                      "3 / 4",
-
-                                    overflow:
-                                      "hidden",
-
-                                    background:
-                                      "#E6EDF0",
+                                    border:
+                                      `3px solid ${colors.border}`,
                                   }}
-                                >
-                                  <img
-                                    src={
-                                      template.thumbnail
+                                />
+
+                                <div>
+                                  <Text
+                                    strong
+                                    style={{
+                                      display:
+                                        "block",
+
+                                      marginBottom:
+                                        10,
+
+                                      color:
+                                        colors.text,
+
+                                      fontSize:
+                                        14,
+                                    }}
+                                  >
+                                    {
+                                      t.profilePhoto
                                     }
-                                    alt={
-                                      template.name
+                                  </Text>
+
+                                  <Upload
+                                    accept="image/png,image/jpeg,image/webp"
+                                    showUploadList={
+                                      false
+                                    }
+                                    beforeUpload={
+                                      handlePhotoUpload
+                                    }
+                                  >
+                                    <Button
+                                      size="large"
+                                      icon={
+                                        <UploadOutlined />
+                                      }
+                                      style={{
+                                        height:
+                                          46,
+                                      }}
+                                    >
+                                      {
+                                        t.uploadPhoto
+                                      }
+                                    </Button>
+                                  </Upload>
+
+                                  <div
+                                    style={{
+                                      marginTop:
+                                        8,
+
+                                      fontSize:
+                                        12,
+
+                                      color:
+                                        colors.textSecondary,
+                                    }}
+                                  >
+                                    JPG, PNG, WEBP
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </ResumeSectionDark>
+
+                          {/* SUMMARY */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.summary
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Input.TextArea
+                              rows={
+                                7
+                              }
+                              value={
+                                resumeData.professionalSummary
+                              }
+                              onChange={(
+                                e
+                              ) =>
+                                updateField(
+                                  "professionalSummary",
+                                  e.target
+                                    .value
+                                )
+                              }
+                              style={{
+                                background:
+                                  colors.input,
+
+                                color:
+                                  colors.text,
+
+                                borderColor:
+                                  colors.border,
+
+                                fontSize:
+                                  15,
+
+                                padding:
+                                  15,
+                              }}
+                            />
+                          </ResumeSectionDark>
+
+                          {/* EXPERIENCE */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.workExperience
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Space
+                              direction="vertical"
+                              size={
+                                22
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                              }}
+                            >
+                              {resumeData.workExperience.map(
+                                (
+                                  item,
+                                  index
+                                ) => (
+                                  <div
+                                    key={
+                                      index
                                     }
                                     style={{
-                                      width:
-                                        "100%",
+                                      padding:
+                                        24,
 
-                                      height:
-                                        "100%",
+                                      borderRadius:
+                                        18,
 
-                                      objectFit:
-                                        "cover",
+                                      background:
+                                        colors.section,
+
+                                      border:
+                                        `1px solid ${colors.border}`,
+
+                                      boxShadow:
+                                        isDarkMode
+                                          ? "0 8px 24px rgba(0,0,0,.12)"
+                                          : "0 5px 18px rgba(0,0,0,.04)",
                                     }}
-                                  />
-
-                                  {selected && (
+                                  >
                                     <div
                                       style={{
-                                        position:
-                                          "absolute",
-
-                                        top:
-                                          14,
-
-                                        right:
-                                          14,
-
-                                        width:
-                                          38,
-
-                                        height:
-                                          38,
-
-                                        borderRadius:
-                                          "50%",
-
-                                        background:
-                                          primaryColor,
-
                                         display:
                                           "flex",
 
@@ -6208,243 +5122,1959 @@ export default function Index() {
                                           "center",
 
                                         justifyContent:
-                                          "center",
+                                          "space-between",
 
-                                        color:
-                                          "#fff",
-
-                                        fontSize:
-                                          19,
-
-                                        boxShadow:
-                                          "0 5px 15px rgba(0,0,0,.2)",
+                                        marginBottom:
+                                          22,
                                       }}
                                     >
-                                      ✓
+                                      <div
+                                        style={{
+                                          fontSize:
+                                            17,
+
+                                          fontWeight:
+                                            800,
+
+                                          color:
+                                            colors.text,
+                                        }}
+                                      >
+                                        {
+                                          t.workExperience
+                                        }{" "}
+                                        #
+                                        {index +
+                                          1}
+                                      </div>
+
+                                      <Button
+                                        danger
+                                        icon={
+                                          <DeleteOutlined />
+                                        }
+                                        onClick={() =>
+                                          removeArrayItem(
+                                            "workExperience",
+                                            index
+                                          )
+                                        }
+                                      >
+                                        {
+                                          t.remove
+                                        }
+                                      </Button>
                                     </div>
-                                  )}
-                                </div>
 
-                                <div
-                                  style={{
-                                    padding:
-                                      16,
-                                  }}
-                                >
+                                    <Row
+                                      gutter={[
+                                        20,
+                                        20,
+                                      ]}
+                                    >
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.position
+                                          }
+                                          value={
+                                            item.position ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateExperience(
+                                              index,
+                                              "position",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.company
+                                          }
+                                          value={
+                                            item.company ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateExperience(
+                                              index,
+                                              "company",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          8
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.location
+                                          }
+                                          value={
+                                            item.location ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateExperience(
+                                              index,
+                                              "location",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          8
+                                        }
+                                      >
+                                        <MonthField
+                                          label={
+                                            t.from
+                                          }
+                                          value={
+                                            item.from ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateExperience(
+                                              index,
+                                              "from",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          8
+                                        }
+                                      >
+                                        <MonthField
+                                          label={
+                                            t.to
+                                          }
+                                          value={
+                                            item.to ||
+                                            ""
+                                          }
+                                          disabled={
+                                            !!item.present
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateExperience(
+                                              index,
+                                              "to",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        span={
+                                          24
+                                        }
+                                      >
+                                        <label
+                                          style={{
+                                            display:
+                                              "flex",
+
+                                            alignItems:
+                                              "center",
+
+                                            gap:
+                                              10,
+
+                                            color:
+                                              colors.text,
+
+                                            cursor:
+                                              "pointer",
+
+                                            fontSize:
+                                              14,
+                                          }}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={
+                                              !!item.present
+                                            }
+                                            onChange={(
+                                              e
+                                            ) =>
+                                              updateExperience(
+                                                index,
+                                                "present",
+                                                e
+                                                  .target
+                                                  .checked
+                                              )
+                                            }
+                                          />
+
+                                          {
+                                            t.present
+                                          }
+                                        </label>
+                                      </Col>
+
+                                      <Col
+                                        span={
+                                          24
+                                        }
+                                      >
+                                        <Text
+                                          strong
+                                          style={{
+                                            display:
+                                              "block",
+
+                                            marginBottom:
+                                              9,
+
+                                            color:
+                                              colors.text,
+                                          }}
+                                        >
+                                          {
+                                            t.responsibilities
+                                          }
+                                        </Text>
+
+                                        <Input.TextArea
+                                          rows={
+                                            6
+                                          }
+                                          value={
+                                            item.responsibilities ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            e
+                                          ) =>
+                                            updateExperience(
+                                              index,
+                                              "responsibilities",
+                                              e.target
+                                                .value
+                                            )
+                                          }
+                                          style={{
+                                            background:
+                                              colors.input,
+
+                                            color:
+                                              colors.text,
+
+                                            borderColor:
+                                              colors.border,
+
+                                            fontSize:
+                                              15,
+
+                                            padding:
+                                              15,
+                                          }}
+                                        />
+                                      </Col>
+                                    </Row>
+                                  </div>
+                                )
+                              )}
+
+                              <Button
+                                type="dashed"
+                                size="large"
+                                icon={
+                                  <PlusOutlined />
+                                }
+                                onClick={() =>
+                                  addArrayItem(
+                                    "workExperience",
+                                    {
+                                      position:
+                                        "",
+                                      company:
+                                        "",
+                                      location:
+                                        "",
+                                      from:
+                                        "",
+                                      to:
+                                        "",
+                                      present:
+                                        false,
+                                      dates:
+                                        "",
+                                      responsibilities:
+                                        "",
+                                    }
+                                  )
+                                }
+                                style={{
+                                  height:
+                                    54,
+
+                                  width:
+                                    "100%",
+                                }}
+                              >
+                                {
+                                  t.addExperience
+                                }
+                              </Button>
+                            </Space>
+                          </ResumeSectionDark>
+
+                          {/* EDUCATION */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.education
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Space
+                              direction="vertical"
+                              size={
+                                22
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                              }}
+                            >
+                              {resumeData.education.map(
+                                (
+                                  item,
+                                  index
+                                ) => (
                                   <div
+                                    key={
+                                      index
+                                    }
                                     style={{
-                                      color:
-                                        colors.text,
+                                      padding:
+                                        24,
 
-                                      fontWeight:
-                                        800,
+                                      borderRadius:
+                                        18,
 
-                                      fontSize:
-                                        14,
+                                      background:
+                                        colors.section,
+
+                                      border:
+                                        `1px solid ${colors.border}`,
                                     }}
                                   >
-                                    {
-                                      template.name
-                                    }
+                                    <div
+                                      style={{
+                                        display:
+                                          "flex",
+
+                                        justifyContent:
+                                          "space-between",
+
+                                        alignItems:
+                                          "center",
+
+                                        marginBottom:
+                                          22,
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          fontSize:
+                                            17,
+
+                                          fontWeight:
+                                            800,
+
+                                          color:
+                                            colors.text,
+                                        }}
+                                      >
+                                        {
+                                          t.education
+                                        }{" "}
+                                        #
+                                        {index +
+                                          1}
+                                      </div>
+
+                                      <Button
+                                        danger
+                                        icon={
+                                          <DeleteOutlined />
+                                        }
+                                        onClick={() =>
+                                          removeArrayItem(
+                                            "education",
+                                            index
+                                          )
+                                        }
+                                      >
+                                        {
+                                          t.remove
+                                        }
+                                      </Button>
+                                    </div>
+
+                                    <Row
+                                      gutter={[
+                                        20,
+                                        20,
+                                      ]}
+                                    >
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.degree
+                                          }
+                                          value={
+                                            item.degree ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateEducation(
+                                              index,
+                                              "degree",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.institution
+                                          }
+                                          value={
+                                            item.institution ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateEducation(
+                                              index,
+                                              "institution",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          12
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <MonthField
+                                          label={
+                                            t.from
+                                          }
+                                          value={
+                                            item.from ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateEducation(
+                                              index,
+                                              "from",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          12
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <MonthField
+                                          label={
+                                            t.to
+                                          }
+                                          value={
+                                            item.to ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateEducation(
+                                              index,
+                                              "to",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+                                    </Row>
                                   </div>
+                                )
+                              )}
 
+                              <Button
+                                type="dashed"
+                                size="large"
+                                icon={
+                                  <PlusOutlined />
+                                }
+                                onClick={() =>
+                                  addArrayItem(
+                                    "education",
+                                    {
+                                      degree:
+                                        "",
+                                      institution:
+                                        "",
+                                      from:
+                                        "",
+                                      to:
+                                        "",
+                                      dates:
+                                        "",
+                                    }
+                                  )
+                                }
+                                style={{
+                                  height:
+                                    54,
+
+                                  width:
+                                    "100%",
+                                }}
+                              >
+                                {
+                                  t.addEducation
+                                }
+                              </Button>
+                            </Space>
+                          </ResumeSectionDark>
+
+                          {/* SKILLS */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.skills
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <SkillChips
+                              skills={
+                                resumeData.skills
+                              }
+                              onAdd={(
+                                value
+                              ) => {
+                                const clean =
+                                  value.trim();
+
+                                if (
+                                  !clean
+                                )
+                                  return;
+
+                                const exists =
+                                  resumeData.skills.some(
+                                    (
+                                      item
+                                    ) =>
+                                      item.name
+                                        .toLowerCase() ===
+                                      clean.toLowerCase()
+                                  );
+
+                                if (
+                                  !exists
+                                ) {
+                                  addArrayItem(
+                                    "skills",
+                                    {
+                                      name:
+                                        clean,
+                                      level:
+                                        70,
+                                    }
+                                  );
+                                }
+                              }}
+                              onRemove={(
+                                index
+                              ) =>
+                                removeArrayItem(
+                                  "skills",
+                                  index
+                                )
+                              }
+                              onLevelChange={(
+                                index,
+                                level
+                              ) =>
+                                updateArrayItem(
+                                  "skills",
+                                  index,
+                                  "level",
+                                  Number(
+                                    level
+                                  )
+                                )
+                              }
+                              placeholder={
+                                t.skillPlaceholder
+                              }
+                              colors={
+                                colors
+                              }
+                            />
+                          </ResumeSectionDark>
+
+                          {/* LANGUAGES */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.languages
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <LanguageChips
+                              languages={
+                                resumeData.languages
+                              }
+                              onAdd={(
+                                value
+                              ) => {
+                                const clean =
+                                  value.trim();
+
+                                if (
+                                  !clean
+                                )
+                                  return;
+
+                                const exists =
+                                  resumeData.languages.some(
+                                    (
+                                      item
+                                    ) =>
+                                      item.language
+                                        .toLowerCase() ===
+                                      clean.toLowerCase()
+                                  );
+
+                                if (
+                                  !exists
+                                ) {
+                                  addArrayItem(
+                                    "languages",
+                                    {
+                                      language:
+                                        clean,
+                                      level:
+                                        "",
+                                    }
+                                  );
+                                }
+                              }}
+                              onRemove={(
+                                index
+                              ) =>
+                                removeArrayItem(
+                                  "languages",
+                                  index
+                                )
+                              }
+                              onLevelChange={(
+                                index,
+                                level
+                              ) =>
+                                updateArrayItem(
+                                  "languages",
+                                  index,
+                                  "level",
+                                  level
+                                )
+                              }
+                              placeholder={
+                                t.languagePlaceholder
+                              }
+                              colors={
+                                colors
+                              }
+                            />
+                          </ResumeSectionDark>
+
+                          {/* PROJECTS */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.projects
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Space
+                              direction="vertical"
+                              size={
+                                22
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                              }}
+                            >
+                              {resumeData.projects.map(
+                                (
+                                  item,
+                                  index
+                                ) => (
                                   <div
+                                    key={
+                                      index
+                                    }
                                     style={{
-                                      marginTop:
-                                        5,
+                                      padding:
+                                        24,
 
-                                      fontSize:
-                                        11,
+                                      borderRadius:
+                                        18,
 
-                                      textTransform:
-                                        "uppercase",
+                                      background:
+                                        colors.section,
 
-                                      letterSpacing:
-                                        1,
-
-                                      color:
-                                        colors.textSecondary,
+                                      border:
+                                        `1px solid ${colors.border}`,
                                     }}
                                   >
-                                    {
-                                      template.orientation
-                                    }
+                                    <div
+                                      style={{
+                                        display:
+                                          "flex",
+
+                                        alignItems:
+                                          "center",
+
+                                        justifyContent:
+                                          "space-between",
+
+                                        marginBottom:
+                                          22,
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          fontSize:
+                                            17,
+
+                                          fontWeight:
+                                            800,
+
+                                          color:
+                                            colors.text,
+                                        }}
+                                      >
+                                        {
+                                          t.projects
+                                        }{" "}
+                                        #
+                                        {index +
+                                          1}
+                                      </div>
+
+                                      <Button
+                                        danger
+                                        icon={
+                                          <DeleteOutlined />
+                                        }
+                                        onClick={() =>
+                                          removeArrayItem(
+                                            "projects",
+                                            index
+                                          )
+                                        }
+                                      >
+                                        {
+                                          t.remove
+                                        }
+                                      </Button>
+                                    </div>
+
+                                    <Row
+                                      gutter={[
+                                        20,
+                                        20,
+                                      ]}
+                                    >
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.projectName
+                                          }
+                                          value={
+                                            item.name ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateArrayItem(
+                                              "projects",
+                                              index,
+                                              "name",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          12
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.projectLink
+                                          }
+                                          value={
+                                            item.link ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateArrayItem(
+                                              "projects",
+                                              index,
+                                              "link",
+                                              formatUrl(
+                                                value
+                                              )
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        span={
+                                          24
+                                        }
+                                      >
+                                        <Text
+                                          strong
+                                          style={{
+                                            display:
+                                              "block",
+
+                                            marginBottom:
+                                              9,
+
+                                            color:
+                                              colors.text,
+                                          }}
+                                        >
+                                          {
+                                            t.description
+                                          }
+                                        </Text>
+
+                                        <Input.TextArea
+                                          rows={
+                                            5
+                                          }
+                                          value={
+                                            item.description ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            e
+                                          ) =>
+                                            updateArrayItem(
+                                              "projects",
+                                              index,
+                                              "description",
+                                              e.target
+                                                .value
+                                            )
+                                          }
+                                          style={{
+                                            background:
+                                              colors.input,
+
+                                            color:
+                                              colors.text,
+
+                                            borderColor:
+                                              colors.border,
+
+                                            padding:
+                                              15,
+
+                                            fontSize:
+                                              15,
+                                          }}
+                                        />
+                                      </Col>
+                                    </Row>
                                   </div>
-                                </div>
-                              </div>
-                            </Col>
-                          );
-                        }
+                                )
+                              )}
+
+                              <Button
+                                type="dashed"
+                                size="large"
+                                icon={
+                                  <PlusOutlined />
+                                }
+                                onClick={() =>
+                                  addArrayItem(
+                                    "projects",
+                                    {
+                                      name:
+                                        "",
+                                      link:
+                                        "",
+                                      description:
+                                        "",
+                                    }
+                                  )
+                                }
+                                style={{
+                                  height:
+                                    54,
+
+                                  width:
+                                    "100%",
+                                }}
+                              >
+                                {
+                                  t.addProject
+                                }
+                              </Button>
+                            </Space>
+                          </ResumeSectionDark>
+
+                          {/* CERTIFICATES */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.certificates
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Space
+                              direction="vertical"
+                              size={
+                                18
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                              }}
+                            >
+                              {resumeData.certifications.map(
+                                (
+                                  item,
+                                  index
+                                ) => (
+                                  <div
+                                    key={
+                                      index
+                                    }
+                                    style={{
+                                      padding:
+                                        24,
+
+                                      borderRadius:
+                                        18,
+
+                                      background:
+                                        colors.section,
+
+                                      border:
+                                        `1px solid ${colors.border}`,
+                                    }}
+                                  >
+                                    <Row
+                                      gutter={[
+                                        20,
+                                        20,
+                                      ]}
+                                      align="bottom"
+                                    >
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          8
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.certificate
+                                          }
+                                          value={
+                                            item.name ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateArrayItem(
+                                              "certifications",
+                                              index,
+                                              "name",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          24
+                                        }
+                                        md={
+                                          8
+                                        }
+                                      >
+                                        <LargeField
+                                          label={
+                                            t.organization
+                                          }
+                                          value={
+                                            item.organization ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateArrayItem(
+                                              "certifications",
+                                              index,
+                                              "organization",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          18
+                                        }
+                                        md={
+                                          6
+                                        }
+                                      >
+                                        <MonthField
+                                          label={
+                                            t.date
+                                          }
+                                          value={
+                                            item.date ||
+                                            ""
+                                          }
+                                          onChange={(
+                                            value
+                                          ) =>
+                                            updateArrayItem(
+                                              "certifications",
+                                              index,
+                                              "date",
+                                              value
+                                            )
+                                          }
+                                          colors={
+                                            colors
+                                          }
+                                        />
+                                      </Col>
+
+                                      <Col
+                                        xs={
+                                          6
+                                        }
+                                        md={
+                                          2
+                                        }
+                                      >
+                                        <Button
+                                          danger
+                                          icon={
+                                            <DeleteOutlined />
+                                          }
+                                          onClick={() =>
+                                            removeArrayItem(
+                                              "certifications",
+                                              index
+                                            )
+                                          }
+                                        />
+                                      </Col>
+                                    </Row>
+                                  </div>
+                                )
+                              )}
+
+                              <Button
+                                type="dashed"
+                                size="large"
+                                icon={
+                                  <PlusOutlined />
+                                }
+                                onClick={() =>
+                                  addArrayItem(
+                                    "certifications",
+                                    {
+                                      name:
+                                        "",
+                                      organization:
+                                        "",
+                                      date:
+                                        "",
+                                    }
+                                  )
+                                }
+                                style={{
+                                  height:
+                                    54,
+
+                                  width:
+                                    "100%",
+                                }}
+                              >
+                                {
+                                  t.addCertificate
+                                }
+                              </Button>
+                            </Space>
+                          </ResumeSectionDark>
+
+                          {/* SOCIAL */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.socialLinks
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Row
+                              gutter={[
+                                20,
+                                20,
+                              ]}
+                            >
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.github
+                                  }
+                                  value={
+                                    resumeData
+                                      .socialLinks
+                                      .github
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updateSocial(
+                                      "github",
+                                      formatUrl(
+                                        value
+                                      )
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.linkedin
+                                  }
+                                  value={
+                                    resumeData
+                                      .socialLinks
+                                      .linkedin
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updateSocial(
+                                      "linkedin",
+                                      formatUrl(
+                                        value
+                                      )
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+
+                              <Col
+                                xs={
+                                  24
+                                }
+                                md={
+                                  8
+                                }
+                              >
+                                <LargeField
+                                  label={
+                                    t.telegram
+                                  }
+                                  value={
+                                    resumeData
+                                      .socialLinks
+                                      .telegram
+                                  }
+                                  onChange={(
+                                    value
+                                  ) =>
+                                    updateSocial(
+                                      "telegram",
+                                      formatUrl(
+                                        value
+                                      )
+                                    )
+                                  }
+                                  colors={
+                                    colors
+                                  }
+                                />
+                              </Col>
+                            </Row>
+                          </ResumeSectionDark>
+
+                          {/* HOBBIES */}
+
+                          <ResumeSectionDark
+                            title={
+                              t.hobbies
+                            }
+                            colors={
+                              colors
+                            }
+                          >
+                            <Input.TextArea
+                              rows={
+                                5
+                              }
+                              value={
+                                resumeData.hobbies.join(
+                                  ", "
+                                )
+                              }
+                              onChange={(
+                                e
+                              ) =>
+                                updateField(
+                                  "hobbies",
+                                  e.target.value
+                                    .split(
+                                      ","
+                                    )
+                                    .map(
+                                      (
+                                        item
+                                      ) =>
+                                        item.trim()
+                                    )
+                                    .filter(
+                                      Boolean
+                                    )
+                                )
+                              }
+                              style={{
+                                background:
+                                  colors.input,
+
+                                color:
+                                  colors.text,
+
+                                borderColor:
+                                  colors.border,
+
+                                padding:
+                                  15,
+
+                                fontSize:
+                                  15,
+                              }}
+                            />
+                          </ResumeSectionDark>
+
+                          {/* STICKY FOOTER */}
+
+                          <div
+                            style={{
+                              bottom:
+                                0,
+
+                              zIndex:
+                                30,
+
+                              marginTop:
+                                30,
+
+                              padding:
+                                "18px 0",
+
+                              background:
+                                colors.page,
+
+                              borderTop:
+                                `1px solid ${colors.border}`,
+
+                              display:
+                                "flex",
+
+                              justifyContent:
+                                "space-between",
+
+                              alignItems:
+                                "center",
+
+                              gap:
+                                15,
+                            }}
+                          >
+                            <Button
+                              size="large"
+                              icon={
+                                <ReloadOutlined />
+                              }
+                              onClick={
+                                loadCurrentUser
+                              }
+                            >
+                              {
+                                t.reloadProfile
+                              }
+                            </Button>
+
+                            <Button
+                              type="primary"
+                              size="large"
+                              htmlType="submit"
+                              style={{
+                                height:
+                                  52,
+
+                                padding:
+                                  "0 30px",
+
+                                background:
+                                  PALETTE.deepSteelBlue,
+
+                                borderColor:
+                                  PALETTE.deepSteelBlue,
+
+                                fontWeight:
+                                  800,
+                              }}
+                            >
+                              {
+                                t.continue
+                              }{" "}
+                              →
+                            </Button>
+                          </div>
+                        </form>
                       )}
-                    </Row>
+                    </div>
+                  </div>
+                )}
 
-                    {/* COLOR */}
+              {/* =================================================
+                  TEMPLATE SELECTION
+              ================================================= */}
 
+              {builderStep ===
+                "templates" && (
+                  <div
+                    style={{
+                      height:
+                        "100%",
+
+                      overflowY:
+                        "auto",
+
+                      padding:
+                        "40px 40px 100px",
+
+                      background:
+                        colors.page,
+                    }}
+                  >
                     <div
                       style={{
-                        marginTop:
-                          34,
+                        maxWidth:
+                          1450,
 
-                        padding:
-                          24,
-
-                        borderRadius:
-                          18,
-
-                        background:
-                          colors.section,
-
-                        border:
-                          `1px solid ${colors.border}`,
+                        margin:
+                          "0 auto",
                       }}
                     >
                       <div
                         style={{
-                          fontWeight:
-                            800,
-
-                          color:
-                            colors.text,
-
                           marginBottom:
-                            12,
+                            30,
                         }}
                       >
-                        {
-                          t.primaryColor
-                        }
+                        <Title
+                          level={
+                            2
+                          }
+                          style={{
+                            margin:
+                              0,
+
+                            color:
+                              colors.text,
+                          }}
+                        >
+                          {
+                            t.chooseTemplate
+                          }
+                        </Title>
+
+                        <Text
+                          style={{
+                            color:
+                              colors.textSecondary,
+                          }}
+                        >
+                          10 ta professional template'dan birini tanlang.
+                        </Text>
                       </div>
+
+                      <Row
+                        gutter={[
+                          24,
+                          24,
+                        ]}
+                      >
+                        {TEMPLATES_REGISTRY.map(
+                          (
+                            template
+                          ) => {
+                            const selected =
+                              template.id ===
+                              selectedTemplateId;
+
+                            return (
+                              <Col
+                                key={
+                                  template.id
+                                }
+                                xs={
+                                  24
+                                }
+                                sm={
+                                  12
+                                }
+                                md={
+                                  8
+                                }
+                                lg={
+                                  6
+                                }
+                                xl={
+                                  4
+                                }
+                              >
+                                <div
+                                  onClick={() =>
+                                    selectTemplate(
+                                      template
+                                    )
+                                  }
+                                  style={{
+                                    background:
+                                      colors.section,
+
+                                    border:
+                                      selected
+                                        ? `2px solid ${primaryColor}`
+                                        : `1px solid ${colors.border}`,
+
+                                    borderRadius:
+                                      18,
+
+                                    overflow:
+                                      "hidden",
+
+                                    cursor:
+                                      "pointer",
+
+                                    transition:
+                                      "all .2s ease",
+
+                                    boxShadow:
+                                      selected
+                                        ? `0 12px 30px rgba(77,156,191,.16)`
+                                        : "none",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      position:
+                                        "relative",
+
+                                      aspectRatio:
+                                        "3 / 4",
+
+                                      overflow:
+                                        "hidden",
+
+                                      background:
+                                        "#E6EDF0",
+                                    }}
+                                  >
+                                    <img
+                                      src={
+                                        template.thumbnail
+                                      }
+                                      alt={
+                                        template.name
+                                      }
+                                      style={{
+                                        width:
+                                          "100%",
+
+                                        height:
+                                          "100%",
+
+                                        objectFit:
+                                          "cover",
+                                      }}
+                                    />
+
+                                    {selected && (
+                                      <div
+                                        style={{
+                                          position:
+                                            "absolute",
+
+                                          top:
+                                            14,
+
+                                          right:
+                                            14,
+
+                                          width:
+                                            38,
+
+                                          height:
+                                            38,
+
+                                          borderRadius:
+                                            "50%",
+
+                                          background:
+                                            primaryColor,
+
+                                          display:
+                                            "flex",
+
+                                          alignItems:
+                                            "center",
+
+                                          justifyContent:
+                                            "center",
+
+                                          color:
+                                            "#fff",
+
+                                          fontSize:
+                                            19,
+
+                                          boxShadow:
+                                            "0 5px 15px rgba(0,0,0,.2)",
+                                        }}
+                                      >
+                                        ✓
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      padding:
+                                        16,
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        color:
+                                          colors.text,
+
+                                        fontWeight:
+                                          800,
+
+                                        fontSize:
+                                          14,
+                                      }}
+                                    >
+                                      {
+                                        template.name
+                                      }
+                                    </div>
+
+                                    <div
+                                      style={{
+                                        marginTop:
+                                          5,
+
+                                        fontSize:
+                                          11,
+
+                                        textTransform:
+                                          "uppercase",
+
+                                        letterSpacing:
+                                          1,
+
+                                        color:
+                                          colors.textSecondary,
+                                      }}
+                                    >
+                                      {
+                                        template.orientation
+                                      }
+                                    </div>
+                                  </div>
+                                </div>
+                              </Col>
+                            );
+                          }
+                        )}
+                      </Row>
+
+                      {/* COLOR */}
+
+                      <div
+                        style={{
+                          marginTop:
+                            34,
+
+                          padding:
+                            24,
+
+                          borderRadius:
+                            18,
+
+                          background:
+                            colors.section,
+
+                          border:
+                            `1px solid ${colors.border}`,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight:
+                              800,
+
+                            color:
+                              colors.text,
+
+                            marginBottom:
+                              12,
+                          }}
+                        >
+                          {
+                            t.primaryColor
+                          }
+                        </div>
+
+                        <div
+                          style={{
+                            display:
+                              "flex",
+
+                            alignItems:
+                              "center",
+
+                            gap:
+                              12,
+                          }}
+                        >
+                          <input
+                            type="color"
+                            value={
+                              primaryColor
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              setPrimaryColor(
+                                e.target
+                                  .value
+                              )
+                            }
+                            style={{
+                              width:
+                                60,
+
+                              height:
+                                44,
+
+                              border:
+                                "none",
+
+                              background:
+                                "transparent",
+
+                              cursor:
+                                "pointer",
+                            }}
+                          />
+
+                          <Input
+                            size="large"
+                            value={
+                              primaryColor
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              setPrimaryColor(
+                                e.target
+                                  .value
+                              )
+                            }
+                            style={{
+                              maxWidth:
+                                240,
+
+                              background:
+                                colors.input,
+
+                              color:
+                                colors.text,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* NAV */}
 
                       <div
                         style={{
                           display:
                             "flex",
 
-                          alignItems:
-                            "center",
+                          justifyContent:
+                            "space-between",
 
-                          gap:
-                            12,
+                          marginTop:
+                            30,
                         }}
                       >
-                        <input
-                          type="color"
-                          value={
-                            primaryColor
-                          }
-                          onChange={(
-                            e
-                          ) =>
-                            setPrimaryColor(
-                              e.target
-                                .value
-                            )
-                          }
-                          style={{
-                            width:
-                              60,
-
-                            height:
-                              44,
-
-                            border:
-                              "none",
-
-                            background:
-                              "transparent",
-
-                            cursor:
-                              "pointer",
-                          }}
-                        />
-
-                        <Input
+                        <Button
                           size="large"
-                          value={
-                            primaryColor
-                          }
-                          onChange={(
-                            e
-                          ) =>
-                            setPrimaryColor(
-                              e.target
-                                .value
+                          onClick={() =>
+                            setBuilderStep(
+                              "form"
                             )
                           }
+                        >
+                          ←{" "}
+                          {
+                            t.back
+                          }
+                        </Button>
+
+                        <Button
+                          type="primary"
+                          size="large"
+                          onClick={
+                            generateResume
+                          }
                           style={{
-                            maxWidth:
+                            minWidth:
                               240,
 
-                            background:
-                              colors.input,
+                            height:
+                              52,
 
-                            color:
-                              colors.text,
+                            background:
+                              primaryColor,
+
+                            borderColor:
+                              primaryColor,
+
+                            fontWeight:
+                              800,
                           }}
-                        />
+                        >
+                          {
+                            t.create
+                          }{" "}
+                          →
+                        </Button>
                       </div>
                     </div>
-
-                    {/* NAV */}
-
-                    <div
-                      style={{
-                        display:
-                          "flex",
-
-                        justifyContent:
-                          "space-between",
-
-                        marginTop:
-                          30,
-                      }}
-                    >
-                      <Button
-                        size="large"
-                        onClick={() =>
-                          setBuilderStep(
-                            "form"
-                          )
-                        }
-                      >
-                        ←{" "}
-                        {
-                          t.back
-                        }
-                      </Button>
-
-                      <Button
-                        type="primary"
-                        size="large"
-                        onClick={
-                          generateResume
-                        }
-                        style={{
-                          minWidth:
-                            240,
-
-                          height:
-                            52,
-
-                          background:
-                            primaryColor,
-
-                          borderColor:
-                            primaryColor,
-
-                          fontWeight:
-                            800,
-                        }}
-                      >
-                        {
-                          t.create
-                        }{" "}
-                        →
-                      </Button>
-                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* =================================================
                   GENERATING
@@ -6452,84 +7082,57 @@ export default function Index() {
 
               {builderStep ===
                 "generating" && (
-                <div
-                  style={{
-                    height:
-                      "100%",
-
-                    minHeight:
-                      600,
-
-                    display:
-                      "flex",
-
-                    flexDirection:
-                      "column",
-
-                    justifyContent:
-                      "center",
-
-                    alignItems:
-                      "center",
-
-                    textAlign:
-                      "center",
-
-                    background:
-                      colors.page,
-                  }}
-                >
                   <div
                     style={{
-                      width:
-                        190,
-
                       height:
-                        190,
+                        "100%",
 
-                      borderRadius:
-                        "50%",
-
-                      background:
-                        colors.section,
-
-                      border:
-                        `10px solid ${colors.border}`,
-
-                      borderTopColor:
-                        primaryColor,
-
-                      boxShadow:
-                        isDarkMode
-                          ? "0 15px 50px rgba(0,0,0,.3)"
-                          : "0 15px 50px rgba(0,0,0,.08)",
+                      minHeight:
+                        600,
 
                       display:
                         "flex",
 
-                      alignItems:
-                        "center",
+                      flexDirection:
+                        "column",
 
                       justifyContent:
                         "center",
 
-                      animation:
-                        "resumeSpin 1s linear infinite",
+                      alignItems:
+                        "center",
+
+                      textAlign:
+                        "center",
+
+                      background:
+                        colors.page,
                     }}
                   >
                     <div
                       style={{
                         width:
-                          130,
+                          190,
 
                         height:
-                          130,
+                          190,
 
                         borderRadius:
                           "50%",
 
                         background:
-                          colors.accentSoft,
+                          colors.section,
+
+                        border:
+                          `10px solid ${colors.border}`,
+
+                        borderTopColor:
+                          primaryColor,
+
+                        boxShadow:
+                          isDarkMode
+                            ? "0 15px 50px rgba(0,0,0,.3)"
+                            : "0 15px 50px rgba(0,0,0,.08)",
 
                         display:
                           "flex",
@@ -6541,108 +7144,134 @@ export default function Index() {
                           "center",
 
                         animation:
-                          "resumePulse 1.6s ease-in-out infinite",
+                          "resumeSpin 1s linear infinite",
                       }}
                     >
-                      <span
+                      <div
                         style={{
-                          fontSize:
-                            52,
+                          width:
+                            130,
 
-                          fontWeight:
-                            900,
+                          height:
+                            130,
 
-                          color:
-                            colors.text,
+                          borderRadius:
+                            "50%",
+
+                          background:
+                            colors.accentSoft,
+
+                          display:
+                            "flex",
+
+                          alignItems:
+                            "center",
+
+                          justifyContent:
+                            "center",
+
+                          animation:
+                            "resumePulse 1.6s ease-in-out infinite",
                         }}
                       >
-                        {
-                          countdown
-                        }
-                      </span>
+                        <span
+                          style={{
+                            fontSize:
+                              52,
+
+                            fontWeight:
+                              900,
+
+                            color:
+                              colors.text,
+                          }}
+                        >
+                          {
+                            countdown
+                          }
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <Title
-                    level={
-                      2
-                    }
-                    style={{
-                      marginTop:
-                        35,
+                    <Title
+                      level={
+                        2
+                      }
+                      style={{
+                        marginTop:
+                          35,
 
-                      marginBottom:
-                        10,
+                        marginBottom:
+                          10,
 
-                      color:
-                        colors.text,
-                    }}
-                  >
-                    {
-                      t.generating
-                    }
-                  </Title>
+                        color:
+                          colors.text,
+                      }}
+                    >
+                      {
+                        t.generating
+                      }
+                    </Title>
 
-                  <Text
-                    style={{
-                      color:
-                        colors.textSecondary,
+                    <Text
+                      style={{
+                        color:
+                          colors.textSecondary,
 
-                      fontSize:
-                        15,
-                    }}
-                  >
-                    {
-                      t.generatingSubtitle
-                    }
-                  </Text>
+                        fontSize:
+                          15,
+                      }}
+                    >
+                      {
+                        t.generatingSubtitle
+                      }
+                    </Text>
 
-                  <div
-                    style={{
-                      marginTop:
-                        25,
-
-                      width:
-                        330,
-
-                      height:
-                        8,
-
-                      background:
-                        colors.border,
-
-                      borderRadius:
-                        999,
-
-                      overflow:
-                        "hidden",
-                    }}
-                  >
                     <div
                       style={{
-                        height:
-                          "100%",
+                        marginTop:
+                          25,
 
-                        width: `${
-                          ((5 -
-                            countdown) /
-                            5) *
-                          100
-                        }%`,
+                        width:
+                          330,
+
+                        height:
+                          8,
 
                         background:
-                          primaryColor,
-
-                        transition:
-                          "width 1s linear",
+                          colors.border,
 
                         borderRadius:
                           999,
+
+                        overflow:
+                          "hidden",
                       }}
-                    />
+                    >
+                      <div
+                        style={{
+                          height:
+                            "100%",
+
+                          width: `${((5 -
+                            countdown) /
+                            5) *
+                            100
+                            }%`,
+
+                          background:
+                            primaryColor,
+
+                          transition:
+                            "width 1s linear",
+
+                          borderRadius:
+                            999,
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* =================================================
                   PREVIEW
@@ -6651,197 +7280,349 @@ export default function Index() {
               {builderStep ===
                 "preview" &&
                 selectedTemplate && (
-                <div
-                  style={{
-                    height:
-                      "100%",
-
-                    display:
-                      "flex",
-
-                    flexDirection:
-                      "column",
-
-                    background:
-                      colors.page,
-                  }}
-                >
-                  {/* PREVIEW BAR */}
-
                   <div
                     style={{
-                      flexShrink:
-                        0,
-
-                      minHeight:
-                        82,
-
-                      padding:
-                        "14px 25px",
+                      height:
+                        "100%",
 
                       display:
                         "flex",
 
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "center",
-
-                      gap:
-                        15,
-
-                      flexWrap:
-                        "wrap",
+                      flexDirection:
+                        "column",
 
                       background:
-                        colors.topbar ||
-                        colors.panel,
-
-                      borderBottom:
-                        `1px solid ${colors.border}`,
-
-                      zIndex:
-                        10,
+                        colors.page,
                     }}
                   >
-                    <div>
-                      <div
-                        style={{
-                          fontSize:
-                            18,
+                    {/* PREVIEW BAR */}
 
-                          fontWeight:
-                            800,
-
-                          color:
-                            colors.text,
-                        }}
-                      >
-                        {
-                          t.resumeReady
-                        }{" "}
-                        🎉
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize:
-                            12,
-
-                          marginTop:
-                            3,
-
-                          color:
-                            colors.textSecondary,
-                        }}
-                      >
-                        {
-                          t.resumeCreated
-                        }
-                      </div>
-                    </div>
-
-                    <Space wrap>
-                      <Button
-                        size="large"
-                        icon={
-                          <EditOutlined />
-                        }
-                        onClick={() =>
-                          setBuilderStep(
-                            "form"
-                          )
-                        }
-                      >
-                        {
-                          t.edit
-                        }
-                      </Button>
-
-                      <Button
-                        size="large"
-                        onClick={() =>
-                          setBuilderStep(
-                            "templates"
-                          )
-                        }
-                      >
-                        {
-                          t.changeTemplate
-                        }
-                      </Button>
-
-                      <Button
-                        type="primary"
-                        size="large"
-                        icon={
-                          <PlusOutlined />
-                        }
-                        onClick={
-                          resetBuilder
-                        }
-                        style={{
-                          background:
-                            PALETTE.deepSteelBlue,
-
-                          borderColor:
-                            PALETTE.deepSteelBlue,
-                        }}
-                      >
-                        {
-                          t.createResume
-                        }
-                      </Button>
-                    </Space>
-                  </div>
-
-                  {/* RESUME CANVAS */}
-
-                  <div
-                    style={{
-                      flex:
-                        1,
-
-                      minHeight:
-                        0,
-
-                      overflow:
-                        "auto",
-
-                      padding:
-                        30,
-
-                      background:
-                        colors.previewBg,
-                    }}
-                  >
                     <div
                       style={{
-                        width:
-                          "fit-content",
+                        flexShrink:
+                          0,
 
-                        margin:
-                          "0 auto",
+                        minHeight:
+                          82,
+
+                        padding:
+                          "14px 25px",
+
+                        display:
+                          "flex",
+
+                        justifyContent:
+                          "space-between",
+
+                        alignItems:
+                          "center",
+
+                        gap:
+                          15,
+
+                        flexWrap:
+                          "wrap",
+
+                        background:
+                          colors.topbar ||
+                          colors.panel,
+
+                        borderBottom:
+                          `1px solid ${colors.border}`,
+
+                        zIndex:
+                          10,
                       }}
                     >
-                      <ResumeTemplatePreview
-                        template={
-                          selectedTemplate
-                        }
-                        data={
-                          resumeData
-                        }
-                        primaryColor={
-                          primaryColor
-                        }
-                      />
+                      <div>
+                        <div
+                          style={{
+                            fontSize:
+                              18,
+
+                            fontWeight:
+                              800,
+
+                            color:
+                              colors.text,
+                          }}
+                        >
+                          {
+                            t.resumeReady
+                          }{" "}
+                          🎉
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize:
+                              12,
+
+                            marginTop:
+                              3,
+
+                            color:
+                              colors.textSecondary,
+                          }}
+                        >
+                          {
+                            t.resumeCreated
+                          }
+                        </div>
+                      </div>
+
+                      <Space wrap>
+                        <Button
+                          size="large"
+                          icon={
+                            <EditOutlined />
+                          }
+                          onClick={() =>
+                            setBuilderStep(
+                              "form"
+                            )
+                          }
+                        >
+                          {
+                            t.edit
+                          }
+                        </Button>
+
+                        <Button
+                          size="large"
+                          onClick={() =>
+                            setBuilderStep(
+                              "templates"
+                            )
+                          }
+                        >
+                          {
+                            t.changeTemplate
+                          }
+                        </Button>
+
+                        <Button
+                          type="primary"
+                          size="large"
+                          icon={
+                            <PlusOutlined />
+                          }
+                          onClick={
+                            resetBuilder
+                          }
+                          style={{
+                            background:
+                              PALETTE.deepSteelBlue,
+
+                            borderColor:
+                              PALETTE.deepSteelBlue,
+                          }}
+                        >
+                          {
+                            t.createResume
+                          }
+                        </Button>
+                      </Space>
+                    </div>
+
+                    {/* RESUME CANVAS */}
+
+                    <div
+                      style={{
+                        flex:
+                          1,
+
+                        minHeight:
+                          0,
+
+                        overflow:
+                          "auto",
+
+                        padding:
+                          30,
+
+                        background:
+                          colors.previewBg,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width:
+                            "fit-content",
+
+                          margin:
+                            "0 auto",
+                        }}
+                      >
+                        <ResumeTemplatePreview
+                          template={
+                            selectedTemplate
+                          }
+                          data={
+                            resumeData
+                          }
+                          primaryColor={
+                            primaryColor
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
+        </Modal>
+
+        <Modal
+          open={resumePreviewOpen}
+          onCancel={() =>
+            setResumePreviewOpen(false)
+          }
+          footer={null}
+          width="100%"
+          centered={false}
+          styles={{
+            content: {
+              padding: 0,
+              minHeight: "100vh",
+            },
+            body: {
+              padding: 0,
+            },
+          }}
+        >
+          {resumePreviewResume && (
+            <div
+              style={{
+                minHeight: "100vh",
+                background: isDarkMode
+                  ? "#0B1820"
+                  : "#EEF3F5",
+              }}
+            >
+              <div
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 10,
+                  padding: "14px 18px",
+                  background: isDarkMode
+                    ? "rgba(13,28,35,.96)"
+                    : "rgba(255,255,255,.96)",
+                  borderBottom: `1px solid ${isDarkMode
+                      ? "rgba(255,255,255,.08)"
+                      : "#DDE7EB"
+                    }`,
+                  backdropFilter: "blur(12px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      color:
+                        PALETTE.deepSteelBlue,
+                      fontSize: 10,
+                      fontWeight: 850,
+                      letterSpacing: ".8px",
+                    }}
+                  >
+                    RESUME PREVIEW
+                  </div>
+                  <Text
+                    strong
+                    style={{
+                      color: colors.text,
+                      fontSize: 16,
+                    }}
+                  >
+                    {resumePreviewResume.parsedData?.personalInfo?.firstName || ""}{" "}
+                    {resumePreviewResume.parsedData?.personalInfo?.lastName || ""}
+                  </Text>
+                </div>
+
+                <Space wrap>
+                  <Button
+                    icon={<ShareAltOutlined />}
+                    onClick={() =>
+                      openShareModal(
+                        resumePreviewResume
+                      )
+                    }
+                  >
+                    Share
+                  </Button>
+
+                  <Button
+                    icon={<QrcodeOutlined />}
+                    onClick={() =>
+                      openQrModal(
+                        resumePreviewResume
+                      )
+                    }
+                  >
+                    QR
+                  </Button>
+
+                  <Button
+                    icon={<DownloadOutlined />}
+                    onClick={exportResumePdf}
+                  >
+                    Export PDF
+                  </Button>
+
+                  <Button
+                    icon={<EditOutlined />}
+                    onClick={() => {
+                      setResumePreviewOpen(false);
+                      openExistingResume(
+                        resumePreviewResume
+                      );
+                    }}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={deleteResumeFromPreview}
+                  >
+                    O‘chirish
+                  </Button>
+                </Space>
+              </div>
+
+              <div
+                id="resume-preview-print"
+                style={{
+                  padding: 28,
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <ResumeTemplatePreview
+                  template={TEMPLATES_REGISTRY.find(
+                    (item) =>
+                      item.id ===
+                      resumePreviewResume.templateId
+                  )}
+                  data={
+                    resumePreviewResume.parsedData ||
+                    createEmptyResume()
+                  }
+                  primaryColor={
+                    resumePreviewResume.primaryColor ||
+                    PALETTE.deepSteelBlue
+                  }
+                />
+              </div>
+            </div>
+          )}
         </Modal>
 
         <HubModals
@@ -7196,8 +7977,148 @@ function HubModals({
         </div>
       </Modal>
 
-      <Modal open={!!certificatePreview} onCancel={() => { if (certificatePreview?.url) URL.revokeObjectURL(certificatePreview.url); setCertificatePreview(null); }} title={certificatePreview?.certificate?.title || "Certificate PDF"} footer={null} width={900} centered styles={{ body: { padding: 0, height: "72vh", overflow: "hidden" } }}>
-        {certificatePreview?.url && <iframe title="Certificate PDF" src={`${certificatePreview.url}#toolbar=1&navpanes=0`} style={{ width: "100%", height: "72vh", border: 0, display: "block" }} />}
+      <Modal
+        open={!!certificatePreview}
+        onCancel={closeCertificatePreview}
+        title={certificatePreview?.certificate?.title || "Certificate PDF"}
+        footer={null}
+        width={980}
+        centered
+        styles={{
+          body: {
+            padding: 0,
+          },
+        }}
+      >
+        {certificatePreview?.certificate && (
+          <div
+            style={{
+              padding: "12px 16px",
+              borderBottom: "1px solid #E7ECEF",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            <Space wrap>
+              <Tag
+                color={
+                  certificatePreview.certificate
+                    .credentialType === "diploma"
+                    ? "purple"
+                    : "blue"
+                }
+              >
+                {certificatePreview.certificate
+                  .credentialType === "diploma"
+                  ? "Diplom"
+                  : "Sertifikat"}
+              </Tag>
+              {certificatePreview.certificate.issuer && (
+                <Text type="secondary">
+                  {certificatePreview.certificate.issuer}
+                </Text>
+              )}
+            </Space>
+
+            <Space wrap>
+              <Button
+                icon={<ShareAltOutlined />}
+                onClick={() =>
+                  shareCertificate(
+                    certificatePreview.certificate
+                  )
+                }
+              >
+                Share
+              </Button>
+
+              <Button
+                icon={<QrcodeOutlined />}
+                onClick={() =>
+                  openCertificateQr(
+                    certificatePreview.certificate
+                  )
+                }
+              >
+                QR
+              </Button>
+
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={() =>
+                  downloadCertificateFile(
+                    certificatePreview.certificate
+                  )
+                }
+              >
+                Export PDF
+              </Button>
+            </Space>
+          </div>
+        )}
+
+        {certificatePreview?.url && (
+          <iframe
+            title="Certificate PDF"
+            src={`${certificatePreview.url}#toolbar=1&navpanes=0`}
+            style={{
+              width: "100%",
+              height: "72vh",
+              border: 0,
+              display: "block",
+            }}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        open={!!certificateQr}
+        onCancel={() => setCertificateQr(null)}
+        title="Certificate QR"
+        footer={null}
+        centered
+      >
+        {certificateQr && (
+          <div
+            style={{
+              display: "grid",
+              justifyItems: "center",
+              gap: 14,
+              padding: "10px 0 8px",
+              textAlign: "center",
+            }}
+          >
+            <QRCodeSVG
+              value={JSON.stringify({
+                title:
+                  certificateQr.title ||
+                  certificateQr.name ||
+                  "Certificate",
+                type:
+                  certificateQr.credentialType ===
+                    "diploma"
+                    ? "diploma"
+                    : "certificate",
+                issuer:
+                  certificateQr.issuer || "",
+                issueDate:
+                  certificateQr.issueDate || "",
+                credentialId:
+                  certificateQr.credentialId || "",
+              })}
+              size={240}
+              level="M"
+              includeMargin
+            />
+
+            <Text type="secondary">
+              QR ushbu hujjatning asosiy ma’lumotlarini saqlaydi.
+            </Text>
+          </div>
+        )}
       </Modal>
 
       <Modal open={shareOpen} onCancel={() => setShareOpen(false)} title="Share resume" footer={null} centered>
@@ -7637,7 +8558,7 @@ function MonthField({
 
           colorScheme:
             colors ===
-            BUILDER_DARK
+              BUILDER_DARK
               ? "dark"
               : "light",
         }}
@@ -7806,97 +8727,97 @@ function SkillChips({
 
       {skills.length >
         0 && (
-        <div
-          style={{
-            display:
-              "grid",
+          <div
+            style={{
+              display:
+                "grid",
 
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(220px,1fr))",
+              gridTemplateColumns:
+                "repeat(auto-fit,minmax(220px,1fr))",
 
-            gap:
-              18,
+              gap:
+                18,
 
-            marginTop:
-              24,
-          }}
-        >
-          {skills.map(
-            (
-              skill,
-              index
-            ) => (
-              <div
-                key={
-                  `${skill.name}-${index}-range`
-                }
-              >
+              marginTop:
+                24,
+            }}
+          >
+            {skills.map(
+              (
+                skill,
+                index
+              ) => (
                 <div
-                  style={{
-                    display:
-                      "flex",
-
-                    justifyContent:
-                      "space-between",
-
-                    color:
-                      colors.text,
-
-                    marginBottom:
-                      6,
-                  }}
+                  key={
+                    `${skill.name}-${index}-range`
+                  }
                 >
-                  <Text
+                  <div
                     style={{
+                      display:
+                        "flex",
+
+                      justifyContent:
+                        "space-between",
+
                       color:
                         colors.text,
+
+                      marginBottom:
+                        6,
                     }}
                   >
-                    {
-                      skill.name
-                    }
-                  </Text>
+                    <Text
+                      style={{
+                        color:
+                          colors.text,
+                      }}
+                    >
+                      {
+                        skill.name
+                      }
+                    </Text>
 
-                  <Text
+                    <Text
+                      style={{
+                        color:
+                          colors.textSecondary,
+                      }}
+                    >
+                      {
+                        skill.level
+                      }
+                      %
+                    </Text>
+                  </div>
+
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={
+                      skill.level ??
+                      70
+                    }
+                    onChange={(
+                      e
+                    ) =>
+                      onLevelChange(
+                        index,
+                        e.target
+                          .value
+                      )
+                    }
                     style={{
-                      color:
-                        colors.textSecondary,
+                      width:
+                        "100%",
                     }}
-                  >
-                    {
-                      skill.level
-                    }
-                    %
-                  </Text>
+                  />
                 </div>
-
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={
-                    skill.level ??
-                    70
-                  }
-                  onChange={(
-                    e
-                  ) =>
-                    onLevelChange(
-                      index,
-                      e.target
-                        .value
-                    )
-                  }
-                  style={{
-                    width:
-                      "100%",
-                  }}
-                />
-              </div>
-            )
-          )}
-        </div>
-      )}
+              )
+            )}
+          </div>
+        )}
     </div>
   );
 }
@@ -8054,125 +8975,125 @@ function LanguageChips({
 
       {languages.length >
         0 && (
-        <div
-          style={{
-            display:
-              "flex",
+          <div
+            style={{
+              display:
+                "flex",
 
-            flexDirection:
-              "column",
+              flexDirection:
+                "column",
 
-            gap:
-              14,
+              gap:
+                14,
 
-            marginTop:
-              22,
-          }}
-        >
-          {languages.map(
-            (
-              item,
-              index
-            ) => (
-              <div
-                key={
-                  `${item.language}-${index}-level`
-                }
-                style={{
-                  display:
-                    "flex",
-
-                  alignItems:
-                    "center",
-
-                  gap:
-                    15,
-                }}
-              >
-                <Text
-                  strong
+              marginTop:
+                22,
+            }}
+          >
+            {languages.map(
+              (
+                item,
+                index
+              ) => (
+                <div
+                  key={
+                    `${item.language}-${index}-level`
+                  }
                   style={{
-                    minWidth:
-                      110,
+                    display:
+                      "flex",
 
-                    color:
-                      colors.text,
+                    alignItems:
+                      "center",
+
+                    gap:
+                      15,
                   }}
                 >
-                  {
-                    item.language
-                  }
-                </Text>
+                  <Text
+                    strong
+                    style={{
+                      minWidth:
+                        110,
 
-                <Select
-                  size="large"
-                  value={
-                    item.level ||
-                    undefined
-                  }
-                  placeholder="Level"
-                  onChange={(
-                    value
-                  ) =>
-                    onLevelChange(
-                      index,
+                      color:
+                        colors.text,
+                    }}
+                  >
+                    {
+                      item.language
+                    }
+                  </Text>
+
+                  <Select
+                    size="large"
+                    value={
+                      item.level ||
+                      undefined
+                    }
+                    placeholder="Level"
+                    onChange={(
                       value
-                    )
-                  }
-                  options={[
-                    {
-                      label:
-                        "Native",
-                      value:
-                        "Native",
-                    },
-                    {
-                      label:
-                        "A1",
-                      value:
-                        "A1",
-                    },
-                    {
-                      label:
-                        "A2",
-                      value:
-                        "A2",
-                    },
-                    {
-                      label:
-                        "B1",
-                      value:
-                        "B1",
-                    },
-                    {
-                      label:
-                        "B2",
-                      value:
-                        "B2",
-                    },
-                    {
-                      label:
-                        "C1",
-                      value:
-                        "C1",
-                    },
-                    {
-                      label:
-                        "C2",
-                      value:
-                        "C2",
-                    },
-                  ]}
-                  style={{
-                    width:
-                      180,
-                  }}
-                />
-              </div>
-            )
-          )}
-        </div>
-      )}
+                    ) =>
+                      onLevelChange(
+                        index,
+                        value
+                      )
+                    }
+                    options={[
+                      {
+                        label:
+                          "Native",
+                        value:
+                          "Native",
+                      },
+                      {
+                        label:
+                          "A1",
+                        value:
+                          "A1",
+                      },
+                      {
+                        label:
+                          "A2",
+                        value:
+                          "A2",
+                      },
+                      {
+                        label:
+                          "B1",
+                        value:
+                          "B1",
+                      },
+                      {
+                        label:
+                          "B2",
+                        value:
+                          "B2",
+                      },
+                      {
+                        label:
+                          "C1",
+                        value:
+                          "C1",
+                      },
+                      {
+                        label:
+                          "C2",
+                        value:
+                          "C2",
+                      },
+                    ]}
+                    style={{
+                      width:
+                        180,
+                    }}
+                  />
+                </div>
+              )
+            )}
+          </div>
+        )}
     </div>
   );
 }

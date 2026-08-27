@@ -1,10 +1,21 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate,
+} from "react-router-dom";
 
-// Components
+// ============================================================
+// COMPONENTS
+// ============================================================
+
 import Navbar from "./Components/Navbar";
 
-// Pages
+// ============================================================
+// PAGES
+// ============================================================
+
 import Home from "./Pages/Home";
 import Auth from "./Pages/Auth";
 import Onboarding from "./Pages/Onboarding";
@@ -12,61 +23,235 @@ import Profile from "./Pages/Profile";
 import Projects from "./Pages/Projects";
 import Setting from "./Pages/Setting";
 
+// ============================================================
+// PORTFOLIO
+// ============================================================
+
+import PortfolioCreate from "./Pages/Portfolio/PortfolioCreate";
+import PublicPortfolio from "./Pages/Portfolio/PublicPortfolio";
+
+// ============================================================
+// ROOT
+// ============================================================
 
 const Root = () => {
-    // LocalStorage'dan hozirgi foydalanuvchini olish
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    // ----------------------------------------------------------
+    // CURRENT USER
+    // ----------------------------------------------------------
+
+    let currentUser = null;
+
+    try {
+        currentUser = JSON.parse(
+            localStorage.getItem("currentUser") || "null"
+        );
+    } catch (error) {
+        console.error(
+            "currentUser parse error:",
+            error
+        );
+
+        currentUser = null;
+    }
+
+    // ----------------------------------------------------------
+    // AUTH CHECK
+    // ----------------------------------------------------------
+
+    const isLoggedIn = !!currentUser;
+
+    // ----------------------------------------------------------
+    // ROUTES
+    // ----------------------------------------------------------
 
     return (
         <BrowserRouter>
-            {/* Navbar faqat foydalanuvchi tizimga kirganida ko'rinadi */}
-            {currentUser && <Navbar />}
+
+            {/* ==================================================
+                NAVBAR
+            ================================================== */}
+
+            {isLoggedIn && <Navbar />}
 
             <Routes>
-                {/* Saytga kirganda foydalanuvchi kirmagan bo'lsa /login ga, kirgan bo'lsa /feed ga o'tadi */}
+
+                {/* ==================================================
+                    ROOT
+                ================================================== */}
+
                 <Route
                     path="/"
                     element={
-                        currentUser ? (
-                            currentUser.isOnboarded ? (
-                                <Navigate to="/feed" replace />
+                        isLoggedIn ? (
+                            currentUser?.isOnboarded ? (
+                                <Navigate
+                                    to="/feed"
+                                    replace
+                                />
                             ) : (
-                                <Navigate to="/onboarding" replace />
+                                <Navigate
+                                    to="/onboarding"
+                                    replace
+                                />
                             )
                         ) : (
-                            <Navigate to="/login" replace />
+                            <Navigate
+                                to="/login"
+                                replace
+                            />
                         )
                     }
                 />
 
-                {/* Auth sahifalari */}
-                <Route path="/login" element={<Auth />} />
-                <Route path="/register" element={<Auth />} />
+                {/* ==================================================
+                    AUTH
+                ================================================== */}
 
-                {/* Himoyalangan sahifalar (Faqat login qilganlar uchun) */}
+                <Route
+                    path="/login"
+                    element={<Auth />}
+                />
+
+                <Route
+                    path="/register"
+                    element={<Auth />}
+                />
+
+                {/* ==================================================
+                    FEED
+                ================================================== */}
+
                 <Route
                     path="/feed"
-                    element={currentUser ? <Home /> : <Navigate to="/login" replace />}
-                />
-                <Route
-                    path="/onboarding"
-                    element={currentUser ? <Onboarding /> : <Navigate to="/login" replace />}
-                />
-                <Route
-                    path="/profile"
-                    element={currentUser ? <Profile /> : <Navigate to="/login" replace />}
-                />
-                <Route
-                    path="/projects"
-                    element={currentUser ? <Projects /> : <Navigate to="/login" replace />}
-                />
-                <Route
-                    path="/settings"
-                    element={currentUser ? <Setting /> : <Navigate to="/login" replace />}
+                    element={
+                        isLoggedIn ? (
+                            <Home />
+                        ) : (
+                            <Navigate
+                                to="/login"
+                                replace
+                            />
+                        )
+                    }
                 />
 
-                {/* 404 Noto'g'ri URL */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* ==================================================
+                    ONBOARDING
+                ================================================== */}
+
+                <Route
+                    path="/onboarding"
+                    element={
+                        isLoggedIn ? (
+                            <Onboarding />
+                        ) : (
+                            <Navigate
+                                to="/login"
+                                replace
+                            />
+                        )
+                    }
+                />
+
+                {/* ==================================================
+                    PROFILE
+                ================================================== */}
+
+                <Route
+                    path="/profile"
+                    element={
+                        isLoggedIn ? (
+                            <Profile />
+                        ) : (
+                            <Navigate
+                                to="/login"
+                                replace
+                            />
+                        )
+                    }
+                />
+
+                {/* ==================================================
+                    PROJECTS
+                ================================================== */}
+
+                <Route
+                    path="/projects"
+                    element={
+                        isLoggedIn ? (
+                            <Projects />
+                        ) : (
+                            <Navigate
+                                to="/login"
+                                replace
+                            />
+                        )
+                    }
+                />
+
+                {/* ==================================================
+                    PORTFOLIO BUILDER
+                    /portfolio/create
+                ================================================== */}
+
+                <Route
+                    path="/portfolio/create"
+                    element={
+                        isLoggedIn ? (
+                            <PortfolioCreate />
+                        ) : (
+                            <Navigate
+                                to="/login"
+                                replace
+                            />
+                        )
+                    }
+                />
+
+                {/* ==================================================
+                    PUBLIC PORTFOLIO
+                    /p/ahror-ahmadov
+                ================================================== */}
+
+                <Route
+                    path="/p/:slug"
+                    element={
+                        <PublicPortfolio />
+                    }
+                />
+
+                {/* ==================================================
+                    SETTINGS
+                ================================================== */}
+
+                <Route
+                    path="/settings"
+                    element={
+                        isLoggedIn ? (
+                            <Setting />
+                        ) : (
+                            <Navigate
+                                to="/login"
+                                replace
+                            />
+                        )
+                    }
+                />
+
+                {/* ==================================================
+                    404
+                ================================================== */}
+
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to="/"
+                            replace
+                        />
+                    }
+                />
+
             </Routes>
         </BrowserRouter>
     );
