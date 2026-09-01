@@ -1,9 +1,11 @@
 import React from "react";
+
 import {
     BrowserRouter,
     Routes,
     Route,
     Navigate,
+    useLocation,
 } from "react-router-dom";
 
 // ============================================================
@@ -31,47 +33,35 @@ import PortfolioCreate from "./Pages/Portfolio/PortfolioCreate";
 import PublicPortfolio from "./Pages/Portfolio/PublicPortfolio";
 
 // ============================================================
-// ROOT
+// APP ROUTER
 // ============================================================
 
-const Root = () => {
-    // ----------------------------------------------------------
-    // CURRENT USER
-    // ----------------------------------------------------------
-
-    let currentUser = null;
-
-    try {
-        currentUser = JSON.parse(
-            localStorage.getItem("currentUser") || "null"
-        );
-    } catch (error) {
-        console.error(
-            "currentUser parse error:",
-            error
-        );
-
-        currentUser = null;
-    }
+const AppRouter = ({
+    isLoggedIn,
+    currentUser,
+}) => {
+    const location = useLocation();
 
     // ----------------------------------------------------------
-    // AUTH CHECK
+    // PORTFOLIO ROUTES
+    // Global Navbar bu sahifalarda ko'rinmaydi
     // ----------------------------------------------------------
 
-    const isLoggedIn = !!currentUser;
-
-    // ----------------------------------------------------------
-    // ROUTES
-    // ----------------------------------------------------------
+    const isPortfolioPage =
+        location.pathname === "/portfolio/create" ||
+        location.pathname === "/p" ||
+        location.pathname.startsWith("/p/");
 
     return (
-        <BrowserRouter>
-
+        <>
             {/* ==================================================
-                NAVBAR
+                GLOBAL NAVBAR
+                Portfolio sahifalarida yashiriladi
             ================================================== */}
 
-            {isLoggedIn && <Navbar />}
+            {!isPortfolioPage && isLoggedIn && (
+                <Navbar />
+            )}
 
             <Routes>
 
@@ -190,7 +180,7 @@ const Root = () => {
                 />
 
                 {/* ==================================================
-                    PORTFOLIO BUILDER
+                    PORTFOLIO CREATE
                     /portfolio/create
                 ================================================== */}
 
@@ -210,7 +200,7 @@ const Root = () => {
 
                 {/* ==================================================
                     PUBLIC PORTFOLIO
-                    /p/ahror-ahmadov
+                    /p/:slug
                 ================================================== */}
 
                 <Route
@@ -253,6 +243,50 @@ const Root = () => {
                 />
 
             </Routes>
+        </>
+    );
+};
+
+// ============================================================
+// ROOT
+// ============================================================
+
+const Root = () => {
+    // ----------------------------------------------------------
+    // CURRENT USER
+    // ----------------------------------------------------------
+
+    let currentUser = null;
+
+    try {
+        currentUser = JSON.parse(
+            localStorage.getItem("currentUser") || "null"
+        );
+    } catch (error) {
+        console.error(
+            "currentUser parse error:",
+            error
+        );
+
+        currentUser = null;
+    }
+
+    // ----------------------------------------------------------
+    // AUTH CHECK
+    // ----------------------------------------------------------
+
+    const isLoggedIn = !!currentUser;
+
+    // ----------------------------------------------------------
+    // BROWSER ROUTER
+    // ----------------------------------------------------------
+
+    return (
+        <BrowserRouter>
+            <AppRouter
+                isLoggedIn={isLoggedIn}
+                currentUser={currentUser}
+            />
         </BrowserRouter>
     );
 };

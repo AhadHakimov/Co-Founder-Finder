@@ -258,6 +258,19 @@ const UI = {
     hoverHint: "Ustiga bosing",
     workExperiences: "ish tajribasi",
     projectCount: "loyiha",
+    careerSnapshot: "Career Snapshot",
+    careerSnapshotSubtitle:
+      "Professional profilingizning qisqa ko‘rinishi.",
+    viewProfile: "Profilni ko‘rish",
+    published: "Published",
+    notPublished: "Yaratilmagan",
+    topSkills: "Asosiy ko‘nikmalar",
+    noSkills: "Ko‘nikmalar hali qo‘shilmagan.",
+    resumeStatus: "Resume",
+    portfolioStatus: "Portfolio",
+    certificateCount: "sertifikat",
+    skillCount: "ko‘nikma",
+
   },
 
   en: {
@@ -391,6 +404,19 @@ const UI = {
     hoverHint: "Click to open",
     workExperiences: "work experiences",
     projectCount: "projects",
+    careerSnapshot: "Career Snapshot",
+    careerSnapshotSubtitle:
+      "A quick overview of your professional identity.",
+    viewProfile: "View profile",
+    published: "Published",
+    notPublished: "Not created",
+    topSkills: "Top skills",
+    noSkills: "No skills added yet.",
+    resumeStatus: "Resume",
+    portfolioStatus: "Portfolio",
+    certificateCount: "certificates",
+    skillCount: "skills",
+
   },
 
   ru: {
@@ -527,6 +553,19 @@ const UI = {
     hoverHint: "Нажмите, чтобы открыть",
     workExperiences: "опыта работы",
     projectCount: "проекта",
+    careerSnapshot: "Career Snapshot",
+    careerSnapshotSubtitle:
+      "Краткий обзор вашего профессионального профиля.",
+    viewProfile: "Открыть профиль",
+    published: "Опубликовано",
+    notPublished: "Не создано",
+    topSkills: "Основные навыки",
+    noSkills: "Навыки пока не добавлены.",
+    resumeStatus: "Резюме",
+    portfolioStatus: "Портфолио",
+    certificateCount: "сертификатов",
+    skillCount: "навыков",
+
   },
 };
 
@@ -1300,8 +1339,8 @@ async function downloadCertificatePdf(userId, certificate, notify = true) {
 
     const baseName = String(
       certificate.title ||
-        certificate.name ||
-        (certificate.credentialType === "diploma" ? "diploma" : "certificate")
+      certificate.name ||
+      (certificate.credentialType === "diploma" ? "diploma" : "certificate")
     )
       .trim()
       .replace(/[\\/:*?"<>|]+/g, "-")
@@ -1555,6 +1594,7 @@ export default function Index() {
 
   const [certificatePreview, setCertificatePreview] = useState(null);
   const [certificateQr, setCertificateQr] = useState(null);
+  const [certificateShare, setCertificateShare] = useState(null);
   const [editingCertificateId, setEditingCertificateId] = useState(null);
   const [shareResume, setShareResume] = useState(null);
   const [shareOpen, setShareOpen] = useState(false);
@@ -3053,7 +3093,7 @@ export default function Index() {
 
             message.error(
               error.message ||
-                "Rezyumeni o‘chirib bo‘lmadi."
+              "Rezyumeni o‘chirib bo‘lmadi."
             );
 
             resolve(false);
@@ -3062,69 +3102,69 @@ export default function Index() {
         onCancel: () => resolve(false),
       });
     });
-    async (
-      resumeId
-    ) => {
-      if (
-        !window.confirm(
-          t.deleteConfirm
-        )
-      ) {
-        return;
-      }
+  async (
+    resumeId
+  ) => {
+    if (
+      !window.confirm(
+        t.deleteConfirm
+      )
+    ) {
+      return;
+    }
 
-      try {
-        const response =
-          await fetch(
-            `${RESUMES_API}/${resumeId}`,
-            {
-              method:
-                "DELETE",
-            }
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            "Rezyumeni o‘chirib bo‘lmadi."
-          );
-        }
-
-        setMyResumes(
-          (prev) =>
-            prev.filter(
-              (item) =>
-                String(item.id) !==
-                String(resumeId)
-            )
+    try {
+      const response =
+        await fetch(
+          `${RESUMES_API}/${resumeId}`,
+          {
+            method:
+              "DELETE",
+          }
         );
 
-        const nextFavorites = favoriteIds.filter(
-          (id) => String(id) !== String(resumeId)
-        );
-        setFavoriteIds(nextFavorites);
-        writeFavoriteIds(nextFavorites);
-
-        const activity = {
-          type: "delete",
-          title: "Resume deleted",
-          subtitle: "A resume was removed from your collection.",
-        };
-        writeActivity(currentUser?.id, activity);
-        setActivities(readActivities(currentUser?.id));
-
-        message.success(
-          t.delete
-        );
-      } catch (error) {
-        console.error(
-          error
-        );
-
-        message.error(
-          error.message
+      if (!response.ok) {
+        throw new Error(
+          "Rezyumeni o‘chirib bo‘lmadi."
         );
       }
-    };
+
+      setMyResumes(
+        (prev) =>
+          prev.filter(
+            (item) =>
+              String(item.id) !==
+              String(resumeId)
+          )
+      );
+
+      const nextFavorites = favoriteIds.filter(
+        (id) => String(id) !== String(resumeId)
+      );
+      setFavoriteIds(nextFavorites);
+      writeFavoriteIds(nextFavorites);
+
+      const activity = {
+        type: "delete",
+        title: "Resume deleted",
+        subtitle: "A resume was removed from your collection.",
+      };
+      writeActivity(currentUser?.id, activity);
+      setActivities(readActivities(currentUser?.id));
+
+      message.success(
+        t.delete
+      );
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      message.error(
+        error.message
+      );
+    }
+  };
 
   const duplicateResume = async (resume) => {
     try {
@@ -3525,10 +3565,9 @@ export default function Index() {
       Modal.confirm({
         title: t.delete,
         content:
-          `${t.deleteCertificateConfirm} ${
-            certificate?.title
-              ? `"${certificate.title}"`
-              : ""
+          `${t.deleteCertificateConfirm} ${certificate?.title
+            ? `"${certificate.title}"`
+            : ""
           }`,
         centered: true,
         okText: t.confirm,
@@ -3595,7 +3634,7 @@ export default function Index() {
 
             message.error(
               error.message ||
-                "Certificate o‘chirilmadi."
+              "Certificate o‘chirilmadi."
             );
 
             resolve(false);
@@ -3605,47 +3644,130 @@ export default function Index() {
       });
     });
 
+  const buildCertificateShareUrl = (certificate) => {
+    const url = new URL(
+      window.location.href
+    );
+
+    url.searchParams.set(
+      "sharedCertificate",
+      String(certificate?.id || "")
+    );
+
+    if (currentUser?.id) {
+      url.searchParams.set(
+        "certificateUser",
+        String(currentUser.id)
+      );
+    }
+
+    return url.toString();
+  };
+
   const shareCertificate = async (certificate) => {
+    if (!certificate) return;
+
+    setCertificateShare({
+      certificate,
+      url: buildCertificateShareUrl(
+        certificate
+      ),
+    });
+  };
+
+  const copyCertificateShareLink = async () => {
+    if (!certificateShare?.url) return;
+
     const title =
-      certificate.title ||
-      certificate.name ||
+      certificateShare.certificate?.title ||
+      certificateShare.certificate?.name ||
       "Certificate";
 
-    const textToShare = [
-      title,
-      certificate.credentialType === "diploma"
-        ? "Diploma"
-        : "Certificate",
-      certificate.issuer
-        ? `Issuer: ${certificate.issuer}`
-        : "",
-      certificate.issueDate
-        ? `Issued: ${certificate.issueDate}`
-        : "",
-      certificate.credentialId
-        ? `Credential ID: ${certificate.credentialId}`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const textToCopy =
+      `${title}\n${certificateShare.url}`;
 
     try {
-      if (navigator.share) {
+      if (
+        navigator.clipboard &&
+        window.isSecureContext
+      ) {
+        await navigator.clipboard.writeText(
+          textToCopy
+        );
+      } else {
+        const textarea =
+          document.createElement("textarea");
+
+        textarea.value = textToCopy;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+
+        document.body.appendChild(
+          textarea
+        );
+
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+
+      message.success(
+        "Sertifikat havolasi nusxalandi."
+      );
+    } catch (error) {
+      console.error(
+        "CERTIFICATE COPY ERROR:",
+        error
+      );
+      message.error(
+        "Havolani nusxalab bo‘lmadi."
+      );
+    }
+  };
+
+  const shareCertificateNative = async () => {
+    if (!certificateShare?.certificate) return;
+
+    try {
+      if (
+        navigator.share &&
+        window.isSecureContext
+      ) {
         await navigator.share({
-          title,
-          text: textToShare,
+          title:
+            certificateShare.certificate.title ||
+            certificateShare.certificate.name ||
+            "Certificate",
+          text:
+            certificateShare.certificate.issuer ||
+            "CEOBACE certificate",
+          url:
+            certificateShare.url,
         });
+      } else {
+        await copyCertificateShareLink();
+      }
+    } catch (error) {
+      if (
+        error?.name === "AbortError"
+      ) {
         return;
       }
 
-      await navigator.clipboard.writeText(textToShare);
-      message.success("Sertifikat ma’lumotlari nusxalandi.");
-    } catch (error) {
-      if (error?.name !== "AbortError") {
-        message.error("Sertifikatni ulashib bo‘lmadi.");
-      }
+      console.error(
+        "CERTIFICATE NATIVE SHARE ERROR:",
+        error
+      );
+
+      // Native share can be unavailable or rejected on desktop.
+      // Keep the share modal open and let the user copy the link.
+      message.info(
+        "Share oynasi ochilmadi. Havolani Copy orqali ulashing."
+      );
     }
   };
+
 
   const openCertificateQr = (certificate) => {
     setCertificateQr(certificate);
@@ -3814,6 +3936,11 @@ export default function Index() {
   return (
     <>
       <style>{`
+        .ceobace-career-snapshot:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 18px 36px rgba(31,67,82,.09) !important;
+        }
+
         .ceobace-certificate-media {
           border: 0 !important;
           outline: 0 !important;
@@ -4098,162 +4225,334 @@ export default function Index() {
               </div>
             </Card>
 
-            <Row
-              gutter={[10, 10]}
-              style={{ marginBottom: 16 }}
-              className="ceobace-status-row"
+            {/* ====================================================
+              PROFILE HEALTH — compact, visual, non-repetitive
+          ==================================================== */}
+            <Card
+              className="ceobace-profile-health"
+              style={{
+                marginBottom: 18,
+                borderRadius: 22,
+                background: isDarkMode
+                  ? "linear-gradient(135deg,#102A34 0%,#163946 100%)"
+                  : "linear-gradient(135deg,#FFFFFF 0%,#F5FAFB 100%)",
+                border:
+                  `1px solid ${isDarkMode
+                    ? "rgba(255,255,255,.09)"
+                    : "#DDE8EC"
+                  }`,
+                boxShadow: isDarkMode
+                  ? "0 14px 35px rgba(0,0,0,.10)"
+                  : "0 14px 35px rgba(31,67,82,.055)",
+                overflow: "hidden",
+              }}
+              styles={{
+                body: {
+                  padding: 0,
+                },
+              }}
             >
-              {[
-                {
-                  key: "resume",
-                  label: t.myResumes,
-                  done: myResumes.length > 0,
-                  helper: myResumes.length
-                    ? t.confirmed
-                    : t.addResumeHint,
-                  icon: <FilePdfOutlined />,
-                },
-                {
-                  key: "certificates",
-                  label: t.certificates,
-                  done: certificates.length > 0,
-                  helper: certificates.length
-                    ? t.confirmed
-                    : t.addCertificatesHint,
-                  icon: <CheckCircleFilled />,
-                },
-                {
-                  key: "projects",
-                  label: t.projects,
-                  done: totalProjects > 0,
-                  helper: totalProjects > 0
-                    ? t.confirmed
-                    : t.addProjectsHint,
-                  icon: <AppstoreOutlined />,
-                },
-                {
-                  key: "completion",
-                  label: t.profileComplete,
-                  done: profileCompletion === 100,
-                  helper: `${profileCompletion}% ${t.complete}`,
-                  icon: <UserOutlined />,
-                },
-              ].map((item) => (
-                <Col
-                  xs={24}
-                  sm={12}
-                  lg={6}
-                  key={item.key}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "minmax(250px,1.25fr) repeat(3,minmax(150px,.75fr))",
+                  alignItems: "stretch",
+                }}
+              >
+                {/* Completion hero */}
+                <div
+                  style={{
+                    padding: "20px 22px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    borderRight:
+                      `1px solid ${isDarkMode
+                        ? "rgba(255,255,255,.08)"
+                        : "#E7EEF1"
+                      }`,
+                  }}
                 >
-                  <Card
+                  <div
                     style={{
-                      height: "100%",
-                      minHeight: 108,
-                      borderRadius: Math.min(radius, 12),
-                      overflow: "hidden",
-                      background: isDarkMode
-                        ? "#10232C"
-                        : "#FFFFFF",
-                      border: `1px solid ${item.done
-                          ? "#B9DCC8"
-                          : colors.border
-                        }`,
+                      position: "relative",
+                      width: 68,
+                      height: 68,
+                      flex: "0 0 auto",
                     }}
-                    styles={{
-                      body: { padding: 12 }
+                  >
+                    <Progress
+                      type="circle"
+                      percent={profileCompletion}
+                      size={68}
+                      strokeWidth={8}
+                      showInfo={false}
+                      strokeColor={
+                        profileCompletion >= 100
+                          ? "#38A66A"
+                          : PALETTE.deepSteelBlue
+                      }
+                      trailColor={
+                        isDarkMode
+                          ? "#1B3C48"
+                          : "#EAF0F2"
+                      }
+                    />
+
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "grid",
+                        placeItems: "center",
+                        color: colors.text,
+                        fontWeight: 900,
+                        fontSize: 14,
+                      }}
+                    >
+                      {profileCompletion}%
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      minWidth: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        color:
+                          PALETTE.deepSteelBlue,
+                        fontSize: 9,
+                        fontWeight: 900,
+                        letterSpacing: ".9px",
+                        textTransform:
+                          "uppercase",
+                      }}
+                    >
+                      {t.profileComplete}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 4,
+                        color: colors.text,
+                        fontSize: 19,
+                        fontWeight: 850,
+                      }}
+                    >
+                      {profileCompletion}%
+                    </div>
+
+                    <Text
+                      type="secondary"
+                      style={{
+                        display: "block",
+                        marginTop: 2,
+                        fontSize: 10,
+                      }}
+                    >
+                      {profileCompletion >= 100
+                        ? t.confirmed
+                        : t.profileCompletionHint}
+                    </Text>
+                  </div>
+                </div>
+
+                {/* Resume */}
+                {[
+                  {
+                    key: "resume",
+                    label: t.myResumes,
+                    done: myResumes.length > 0,
+                    icon: <FilePdfOutlined />,
+                    value: myResumes.length,
+                    sub:
+                      myResumes.length > 0
+                        ? t.confirmed
+                        : t.addResumeHint,
+                  },
+                  {
+                    key: "certificates",
+                    label: t.certificates,
+                    done: certificates.length > 0,
+                    icon: <CheckCircleFilled />,
+                    value: certificates.length,
+                    sub:
+                      certificates.length > 0
+                        ? t.confirmed
+                        : t.addCertificatesHint,
+                  },
+                  {
+                    key: "projects",
+                    label: t.projects,
+                    done: totalProjects > 0,
+                    icon: <AppstoreOutlined />,
+                    value: totalProjects,
+                    sub:
+                      totalProjects > 0
+                        ? t.confirmed
+                        : t.addProjectsHint,
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.key}
+                    className="ceobace-health-item"
+                    style={{
+                      padding: "18px 18px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      minWidth: 0,
+                      borderRight:
+                        `1px solid ${isDarkMode
+                          ? "rgba(255,255,255,.08)"
+                          : "#E7EEF1"
+                        }`,
+                      transition:
+                        "background .2s ease, transform .2s ease",
                     }}
                   >
                     <div
                       style={{
                         display: "flex",
-                        gap: 9,
                         alignItems: "center",
+                        justifyContent:
+                          "space-between",
+                        gap: 8,
                       }}
                     >
                       <div
                         style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 10,
+                          width: 38,
+                          height: 38,
+                          borderRadius: 11,
                           display: "grid",
                           placeItems: "center",
-                          background:
-                            item.done
-                              ? "#EAF7EF"
-                              : isDarkMode
-                                ? "#163743"
-                                : "#EAF5F9",
-                          color:
-                            item.done
-                              ? "#21864A"
-                              : PALETTE.deepSteelBlue,
-                          flex: "0 0 auto",
+                          background: item.done
+                            ? isDarkMode
+                              ? "rgba(56,166,106,.14)"
+                              : "#EDF8F1"
+                            : isDarkMode
+                              ? "#183B48"
+                              : "#EEF6F8",
+                          color: item.done
+                            ? "#2FA466"
+                            : PALETTE.deepSteelBlue,
+                          fontSize: 16,
+                        }}
+                      >
+                        {item.icon}
+                      </div>
+
+                      <Tag
+                        color={
+                          item.done
+                            ? "success"
+                            : "default"
+                        }
+                        style={{
+                          margin: 0,
+                          borderRadius: 999,
+                          fontSize: 8,
+                          fontWeight: 700,
                         }}
                       >
                         {item.done
-                          ? <CheckCircleFilled />
-                          : item.icon}
-                      </div>
-
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            color:
-                              colors.textSecondary,
-                            fontSize: 8.5,
-                            lineHeight: 1.2,
-                            fontWeight: 700,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {item.label}
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: 3,
-                            color: item.done
-                              ? "#21864A"
-                              : colors.text,
-                            fontWeight: 800,
-                            fontSize: 11.5,
-                            lineHeight: 1.2,
-                            overflowWrap: "anywhere",
-                          }}
-                        >
-                          {item.done
-                            ? `✓ ${t.confirmed}`
-                            : item.key === "completion"
-                              ? `${profileCompletion}% ${t.complete}`
-                              : item.helper}
-                        </div>
-
-                        {item.key !== "completion" &&
-                          !item.done && (
-                            <div
-                              style={{
-                                marginTop: 4,
-                                color:
-                                  colors.textSecondary,
-                                fontSize: 8,
-                                lineHeight: 1.3,
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {item.helper}
-                            </div>
-                          )}
-                      </div>
+                          ? "✓"
+                          : item.value}
+                      </Tag>
                     </div>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
+
+                    <div
+                      style={{
+                        marginTop: 10,
+                        color: colors.textSecondary,
+                        fontSize: 9,
+                        fontWeight: 750,
+                      }}
+                    >
+                      {item.label}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 3,
+                        color: item.done
+                          ? "#2FA466"
+                          : colors.text,
+                        fontSize: 12,
+                        fontWeight: 800,
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {item.done
+                        ? `✓ ${t.confirmed}`
+                        : item.sub}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 5,
+                        color:
+                          colors.textSecondary,
+                        fontSize: 9,
+                      }}
+                    >
+                      {item.value}{" "}
+                      {item.key === "resume"
+                        ? "resume"
+                        : item.key === "certificates"
+                          ? t.certificateCount
+                          : t.projectCount}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Keep the last divider out on large screens */}
+                <style>{`
+                @media (min-width: 901px) {
+                  .ceobace-profile-health .ceobace-health-item:last-child {
+                    border-right: 0 !important;
+                  }
+                }
+
+                @media (max-width: 900px) {
+                  .ceobace-profile-health > div {
+                    grid-template-columns: 1fr 1fr !important;
+                  }
+
+                  .ceobace-profile-health > div > div:first-child {
+                    grid-column: 1 / -1;
+                    border-right: 0 !important;
+                    border-bottom: 1px solid ${isDarkMode
+                    ? "rgba(255,255,255,.08)"
+                    : "#E7EEF1"
+                  };
+                  }
+                }
+
+                @media (max-width: 560px) {
+                  .ceobace-profile-health > div {
+                    grid-template-columns: 1fr !important;
+                  }
+
+                  .ceobace-profile-health > div > div {
+                    border-right: 0 !important;
+                    border-bottom: 1px solid ${isDarkMode
+                    ? "rgba(255,255,255,.08)"
+                    : "#E7EEF1"
+                  };
+                  }
+
+                  .ceobace-profile-health > div > div:last-child {
+                    border-bottom: 0 !important;
+                  }
+                }
+              `}</style>
+              </div>
+            </Card>
 
             {/* ====================================================
               YOUR INFORMATION HUB
@@ -4286,8 +4585,8 @@ export default function Index() {
                 borderRadius: 24,
                 background: isDarkMode ? "#173542" : "#FFFFFF",
                 border: `1px solid ${isDarkMode
-                    ? "rgba(255,255,255,.10)"
-                    : "#DDE7EB"
+                  ? "rgba(255,255,255,.10)"
+                  : "#DDE7EB"
                   }`,
                 boxShadow: isDarkMode
                   ? "0 20px 50px rgba(0,0,0,.12)"
@@ -5183,6 +5482,364 @@ export default function Index() {
                     {totalProjects} {t.projectCount}
                   </div>
                 </Card>
+                <Card
+                  className="ceobace-career-snapshot"
+                  hoverable
+                  style={{
+                    marginTop: 14,
+                    borderRadius: radius,
+                    background: isDarkMode
+                      ? "linear-gradient(145deg,#122B34,#0F242C)"
+                      : "linear-gradient(145deg,#FFFFFF,#F7FAFB)",
+                    border: `1px solid ${isDarkMode
+                        ? "rgba(255,255,255,.09)"
+                        : "#E1E9ED"
+                      }`,
+                    boxShadow: isDarkMode
+                      ? "0 14px 32px rgba(0,0,0,.10)"
+                      : "0 14px 32px rgba(31,67,82,.055)",
+                    transition:
+                      "transform .2s ease, box-shadow .2s ease",
+                  }}
+                  styles={{
+                    body: {
+                      padding: 20,
+                    },
+                  }}
+                  onClick={() => {
+                    if (myResumes[0]) {
+                      openResumePreview(
+                        myResumes[0]
+                      );
+                    }
+                  }}
+                >
+                  {(() => {
+                    const snapshotResume =
+                      myResumes[0]?.parsedData ||
+                      resumeData ||
+                      createEmptyResume();
+
+                    const person =
+                      snapshotResume.personalInfo ||
+                      {};
+
+                    const snapshotAvatar =
+                      person.profilePhoto ||
+                      currentUser?.avatar ||
+                      currentUser?.avatarUrl ||
+                      currentUser?.profilePhoto ||
+                      currentUser?.image ||
+                      currentUser?.imageUrl;
+
+                    const snapshotSkills =
+                      normalizeSkills(
+                        snapshotResume.skills
+                      ).slice(0, 5);
+
+                    const portfolio =
+                      getLatestLocalPortfolio();
+
+                    const displayName =
+                      `${person.firstName || ""} ${person.lastName || ""
+                        }`.trim() ||
+                      currentUser?.fullName ||
+                      currentUser?.name ||
+                      "Your Profile";
+
+                    const role =
+                      person.professionalTitle ||
+                      t.resumeStatus;
+
+                    return (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                          }}
+                        >
+                          <Avatar
+                            size={54}
+                            src={snapshotAvatar}
+                            icon={<UserOutlined />}
+                            style={{
+                              flex: "0 0 auto",
+                              background:
+                                isDarkMode
+                                  ? "#1A4251"
+                                  : "#EAF5F9",
+                              color:
+                                PALETTE.deepSteelBlue,
+                              border:
+                                "2px solid rgba(49,112,142,.16)",
+                            }}
+                          />
+
+                          <div
+                            style={{
+                              minWidth: 0,
+                              flex: 1,
+                            }}
+                          >
+                            <div
+                              style={{
+                                color:
+                                  PALETTE.deepSteelBlue,
+                                fontSize: 9,
+                                fontWeight: 900,
+                                letterSpacing: ".8px",
+                                textTransform:
+                                  "uppercase",
+                              }}
+                            >
+                              {t.careerSnapshot}
+                            </div>
+
+                            <div
+                              style={{
+                                color: colors.text,
+                                fontWeight: 850,
+                                fontSize: 17,
+                                marginTop: 3,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {displayName}
+                            </div>
+
+                            <div
+                              style={{
+                                color:
+                                  colors.textSecondary,
+                                fontSize: 10,
+                                marginTop: 2,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {role}
+                            </div>
+                          </div>
+
+                          <ArrowRightOutlined
+                            style={{
+                              color:
+                                colors.textSecondary,
+                            }}
+                          />
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 17,
+                            display: "grid",
+                            gridTemplateColumns:
+                              "repeat(3,1fr)",
+                            gap: 8,
+                          }}
+                        >
+                          {[
+                            {
+                              value:
+                                totalExperience,
+                              label:
+                                t.workExperiences,
+                            },
+                            {
+                              value:
+                                totalProjects,
+                              label:
+                                t.projectCount,
+                            },
+                            {
+                              value:
+                                certificates.length,
+                              label:
+                                t.certificateCount,
+                            },
+                          ].map((item) => (
+                            <div
+                              key={
+                                item.label
+                              }
+                              style={{
+                                padding:
+                                  "9px 8px",
+                                borderRadius: 11,
+                                background:
+                                  isDarkMode
+                                    ? "#163440"
+                                    : "#F1F7F9",
+                                textAlign:
+                                  "center",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  color:
+                                    colors.text,
+                                  fontWeight:
+                                    900,
+                                  fontSize:
+                                    16,
+                                }}
+                              >
+                                {item.value}
+                              </div>
+                              <div
+                                style={{
+                                  marginTop:
+                                    2,
+                                  color:
+                                    colors.textSecondary,
+                                  fontSize:
+                                    8,
+                                  lineHeight:
+                                    1.25,
+                                }}
+                              >
+                                {item.label}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 15,
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent:
+                                "space-between",
+                              alignItems:
+                                "center",
+                              marginBottom:
+                                7,
+                            }}
+                          >
+                            <Text
+                              type="secondary"
+                              style={{
+                                fontSize: 9,
+                                fontWeight: 750,
+                              }}
+                            >
+                              {t.topSkills}
+                            </Text>
+
+                            <Tag
+                              color={
+                                portfolio?.slug
+                                  ? "green"
+                                  : "default"
+                              }
+                              style={{
+                                margin: 0,
+                                borderRadius:
+                                  999,
+                                fontSize: 8,
+                              }}
+                            >
+                              {portfolio?.slug
+                                ? `● ${t.published}`
+                                : t.notPublished}
+                            </Tag>
+                          </div>
+
+                          {snapshotSkills.length ? (
+                            <div
+                              style={{
+                                display:
+                                  "flex",
+                                gap: 6,
+                                flexWrap:
+                                  "wrap",
+                              }}
+                            >
+                              {snapshotSkills.map(
+                                (skill) => (
+                                  <Tag
+                                    key={
+                                      skill.name
+                                    }
+                                    style={{
+                                      margin: 0,
+                                      borderRadius:
+                                        999,
+                                      fontSize:
+                                        9,
+                                      padding:
+                                        "2px 7px",
+                                    }}
+                                  >
+                                    {skill.name}
+                                  </Tag>
+                                )
+                              )}
+                            </div>
+                          ) : (
+                            <div
+                              style={{
+                                color:
+                                  colors.textSecondary,
+                                fontSize: 9,
+                              }}
+                            >
+                              {t.noSkills}
+                            </div>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 16,
+                            paddingTop: 12,
+                            borderTop:
+                              `1px solid ${isDarkMode
+                                ? "rgba(255,255,255,.07)"
+                                : "#E7EDF0"
+                              }`,
+                            display: "flex",
+                            justifyContent:
+                              "space-between",
+                            alignItems:
+                              "center",
+                            gap: 10,
+                          }}
+                        >
+                          <Text
+                            type="secondary"
+                            style={{
+                              fontSize: 9,
+                            }}
+                          >
+                            {t.careerSnapshotSubtitle}
+                          </Text>
+
+                          <span
+                            style={{
+                              color:
+                                PALETTE.deepSteelBlue,
+                              fontSize: 18,
+                              lineHeight: 1,
+                            }}
+                          >
+                            →
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </Card>
+
               </Col>
 
               <Col xs={24} lg={15}>
@@ -8825,8 +9482,8 @@ export default function Index() {
                       ? "rgba(13,28,35,.96)"
                       : "rgba(255,255,255,.96)",
                     borderBottom: `1px solid ${isDarkMode
-                        ? "rgba(255,255,255,.08)"
-                        : "#DDE7EB"
+                      ? "rgba(255,255,255,.08)"
+                      : "#DDE7EB"
                       }`,
                     backdropFilter: "blur(12px)",
                     display: "flex",
@@ -8931,19 +9588,19 @@ export default function Index() {
                     }}
                   >
                     <ResumeTemplatePreview
-                    template={TEMPLATES_REGISTRY.find(
-                      (item) =>
-                        item.id ===
-                        resumePreviewResume.templateId
-                    )}
-                    data={
-                      resumePreviewResume.parsedData ||
-                      createEmptyResume()
-                    }
-                    primaryColor={
-                      resumePreviewResume.primaryColor ||
-                      PALETTE.deepSteelBlue
-                    }
+                      template={TEMPLATES_REGISTRY.find(
+                        (item) =>
+                          item.id ===
+                          resumePreviewResume.templateId
+                      )}
+                      data={
+                        resumePreviewResume.parsedData ||
+                        createEmptyResume()
+                      }
+                      primaryColor={
+                        resumePreviewResume.primaryColor ||
+                        PALETTE.deepSteelBlue
+                      }
                     />
                   </div>
                 </div>
@@ -8964,6 +9621,15 @@ export default function Index() {
             closeCertificatePreview={closeCertificatePreview}
             certificateQr={certificateQr}
             setCertificateQr={setCertificateQr}
+            shareCertificate={shareCertificate}
+            certificateShare={certificateShare}
+            setCertificateShare={setCertificateShare}
+            copyCertificateShareLink={copyCertificateShareLink}
+            shareCertificateNative={shareCertificateNative}
+            openCertificateQr={openCertificateQr}
+            downloadCertificatePdf={downloadCertificatePdf}
+            buildCertificateShareUrl={buildCertificateShareUrl}
+            certificateUserId={currentUser?.id}
             editingCertificateId={editingCertificateId}
             setEditingCertificateId={setEditingCertificateId}
             shareOpen={shareOpen}
@@ -9552,6 +10218,15 @@ function HubModals({
   closeCertificatePreview,
   certificateQr,
   setCertificateQr,
+  shareCertificate,
+  certificateShare,
+  setCertificateShare,
+  copyCertificateShareLink,
+  shareCertificateNative,
+  openCertificateQr,
+  downloadCertificatePdf,
+  buildCertificateShareUrl,
+  certificateUserId,
   editingCertificateId,
   setEditingCertificateId,
   shareOpen,
@@ -9665,7 +10340,7 @@ function HubModals({
               <Button
                 icon={<ShareAltOutlined />}
                 onClick={() =>
-                  shareCertificate(
+                  shareCertificate?.(
                     certificatePreview.certificate
                   )
                 }
@@ -9676,7 +10351,7 @@ function HubModals({
               <Button
                 icon={<QrcodeOutlined />}
                 onClick={() =>
-                  openCertificateQr(
+                  openCertificateQr?.(
                     certificatePreview.certificate
                   )
                 }
@@ -9686,12 +10361,24 @@ function HubModals({
 
               <Button
                 icon={<DownloadOutlined />}
-                onClick={() =>
-                  downloadCertificatePdf(
-                    currentUser?.id,
-                    certificatePreview.certificate
-                  )
-                }
+                onClick={async () => {
+                  if (!certificatePreview?.certificate) return;
+
+                  try {
+                    await downloadCertificatePdf(
+                      certificateUserId,
+                      certificatePreview.certificate
+                    );
+                  } catch (error) {
+                    console.error(
+                      "CERTIFICATE EXPORT ERROR:",
+                      error
+                    );
+                    message?.error?.(
+                      "PDF eksport qilishda xatolik yuz berdi."
+                    );
+                  }
+                }}
               >
                 Export PDF
               </Button>
@@ -9714,6 +10401,82 @@ function HubModals({
       </Modal>
 
       <Modal
+        open={!!certificateShare}
+        onCancel={() =>
+          setCertificateShare?.(null)
+        }
+        title="Share certificate"
+        footer={null}
+        centered
+        width={560}
+      >
+        {certificateShare && (
+          <div
+            style={{
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <Input
+              size="large"
+              readOnly
+              value={
+                certificateShare.url
+              }
+            />
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "1fr 1fr",
+                gap: 10,
+              }}
+            >
+              <Button
+                type="primary"
+                block
+                icon={
+                  <CopyOutlined />
+                }
+                onClick={
+                  copyCertificateShareLink
+                }
+              >
+                Copy link
+              </Button>
+
+              <Button
+                block
+                icon={
+                  <ShareAltOutlined />
+                }
+                onClick={
+                  shareCertificateNative
+                }
+              >
+                Share
+              </Button>
+            </div>
+
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 12,
+                background: "#F7FAFB",
+                fontSize: 11,
+                color: "#667A83",
+              }}
+            >
+              {certificateShare.certificate?.title ||
+                certificateShare.certificate?.name ||
+                "Certificate"}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
         open={!!certificateQr}
         onCancel={handleCloseCertificateQr}
         title="Certificate QR"
@@ -9731,30 +10494,19 @@ function HubModals({
             }}
           >
             <QRCodeSVG
-              value={JSON.stringify({
-                title:
-                  certificateQr.title ||
-                  certificateQr.name ||
-                  "Certificate",
-                type:
-                  certificateQr.credentialType ===
-                    "diploma"
-                    ? "diploma"
-                    : "certificate",
-                issuer:
-                  certificateQr.issuer || "",
-                issueDate:
-                  certificateQr.issueDate || "",
-                credentialId:
-                  certificateQr.credentialId || "",
-              })}
+              value={
+                buildCertificateShareUrl?.(
+                  certificateQr
+                ) ||
+                window.location.href
+              }
               size={240}
               level="M"
               includeMargin
             />
 
             <Text type="secondary">
-              QR ushbu hujjatning asosiy ma’lumotlarini saqlaydi.
+              QR ushbu sertifikat havolasini ochadi.
             </Text>
           </div>
         )}

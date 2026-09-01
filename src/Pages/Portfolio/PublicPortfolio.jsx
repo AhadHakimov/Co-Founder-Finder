@@ -1,3 +1,6 @@
+import logoDark from "../../assets/icons/logoDark.svg";
+import logoLight from "../../assets/icons/logoLight.svg";
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
     Button,
@@ -151,7 +154,9 @@ export default function PublicPortfolio() {
                     />
                     <Button
                         type="primary"
-                        href="/projects"
+                        onClick={() => {
+                            window.location.href = "/projects";
+                        }}
                         style={{
                             marginTop: 18,
                             borderRadius: 10,
@@ -279,12 +284,15 @@ function PortfolioView({ portfolio }) {
         sections[name] !== false;
 
     const scrollToId = (id) => {
-        document
-            .getElementById(id)
-            ?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
+        const target =
+            document.getElementById(id);
+
+        if (!target) return;
+
+        target.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        });
     };
 
     const github = normalizeUrl(social.github);
@@ -308,6 +316,13 @@ function PortfolioView({ portfolio }) {
                 * { box-sizing: border-box; }
                 a { text-decoration: none; }
                 .ceo-shell { width: min(1180px, calc(100% - 36px)); margin: 0 auto; }
+                .ceo-brand-button {
+                    transition: transform .2s ease, opacity .2s ease;
+                }
+                .ceo-brand-button:hover {
+                    transform: translateY(-1px);
+                    opacity: .92;
+                }
                 .ceo-nav-link {
                     color: ${colors.secondary};
                     font-size: 13px;
@@ -368,40 +383,35 @@ function PortfolioView({ portfolio }) {
                         gap: 18,
                     }}
                 >
-                    <div
+                    <button
+                        type="button"
+                        aria-label="Go to CEOBACE home"
+                        className="ceo-brand-button"
+                        onClick={() => {
+                            window.location.href = "/";
+                        }}
                         style={{
-                            display: "flex",
+                            display: "inline-flex",
                             alignItems: "center",
                             gap: 10,
+                            padding: 0,
+                            border: 0,
+                            background: "transparent",
                             cursor: "pointer",
                         }}
-                        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                     >
-                        <div
+                        <img
+                            src={dark ? logoDark : logoLight}
+                            alt="CEOBACE"
                             style={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: 10,
-                                display: "grid",
-                                placeItems: "center",
-                                background: accent,
-                                color: "#fff",
-                                fontWeight: 800,
-                                fontSize: 13,
+                                display: "block",
+                                width: 132,
+                                height: "auto",
+                                maxHeight: 38,
+                                objectFit: "contain",
                             }}
-                        >
-                            C
-                        </div>
-                        <Text
-                            strong
-                            style={{
-                                color: colors.text,
-                                letterSpacing: ".4px",
-                            }}
-                        >
-                            CEOBACE
-                        </Text>
-                    </div>
+                        />
+                    </button>
 
                     <div
                         className="ceo-nav-links"
@@ -417,22 +427,39 @@ function PortfolioView({ portfolio }) {
                             ["Projects", "projects"],
                             ["Skills", "skills"],
                             ["Contact", "contact"],
-                        ].map(([label, id]) => (
-                            <span
-                                key={id}
-                                className="ceo-nav-link"
-                                onClick={() => scrollToId(id)}
-                            >
-                                {label}
-                            </span>
-                        ))}
+                        ]
+                            .filter(([, id]) =>
+                                id === "contact"
+                                    ? hasSection("contact")
+                                    : hasSection(id)
+                            )
+                            .map(([label, id]) => (
+                                <button
+                                    type="button"
+                                    key={id}
+                                    className="ceo-nav-link"
+                                    onClick={() => scrollToId(id)}
+                                    style={{
+                                        border: 0,
+                                        background: "transparent",
+                                        padding: 0,
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            ))}
                     </div>
 
                     <Button
                         type="primary"
                         size="middle"
                         icon={<MailOutlined />}
-                        href={info.email ? `mailto:${info.email}` : "#contact"}
+                        href={info.email ? `mailto:${info.email}` : undefined}
+                        onClick={() => {
+                            if (!info.email) {
+                                scrollToId("contact");
+                            }
+                        }}
                         style={{
                             background: accent,
                             borderColor: accent,
@@ -550,8 +577,13 @@ function PortfolioView({ portfolio }) {
                                     href={
                                         info.email
                                             ? `mailto:${info.email}`
-                                            : "#contact"
+                                            : undefined
                                     }
+                                    onClick={() => {
+                                        if (!info.email) {
+                                            scrollToId("contact");
+                                        }
+                                    }}
                                     style={{
                                         height: 48,
                                         borderRadius: 12,
@@ -567,7 +599,7 @@ function PortfolioView({ portfolio }) {
                                 {info.portfolio && (
                                     <Button
                                         size="large"
-                                        icon={<DownloadOutlined />}
+                                        icon={<LinkOutlined />}
                                         href={normalizeUrl(info.portfolio)}
                                         target="_blank"
                                         rel="noreferrer"
