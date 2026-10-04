@@ -6,6 +6,7 @@ import React, {
 } from "react";
 
 import {
+  Alert,
   Avatar,
   Button,
   Card,
@@ -18,6 +19,7 @@ import {
   Row,
   Select,
   Space,
+  Spin,
   Tag,
   Typography,
   Upload,
@@ -45,6 +47,7 @@ import {
   CheckCircleFilled,
   GlobalOutlined,
   ArrowRightOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 
 import {
@@ -70,6 +73,10 @@ const USERS_API =
 
 const RESUMES_API =
   "https://6a7700dd63e9caf860c33d99.mockapi.io/resumes";
+
+const AI_API_BASE =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_AI_API_URL) ||
+  "http://localhost:5000";
 
 // ============================================================
 // PALETTE
@@ -216,6 +223,21 @@ const UI = {
     invalidEmail: "Email formati noto‘g‘ri.",
     requiredFirstName: "Ismni kiriting.",
     requiredLastName: "Familiyani kiriting.",
+    aiReview: "AI tahlil",
+    aiReviewTitle: "AI Resume Review",
+    aiReviewSubtitle: "Rezyumeingizni haqiqiy AI yordamida tahlil qiling.",
+    aiReviewButton: "AI bilan tekshirish",
+    aiReviewLoading: "AI rezyumeni tahlil qilmoqda...",
+    aiReviewScore: "Rezyume bahosi",
+    aiStrengths: "Kuchli tomonlar",
+    aiImprovements: "Yaxshilash kerak",
+    aiRecommendation: "AI tavsiyasi",
+    aiSummary: "Xulosa",
+    aiNoResult: "AI tahlili natijasi mavjud emas.",
+    aiServerError: "AI serveriga ulanib bo‘lmadi.",
+    aiRequestError: "AI tahlili vaqtida xatolik yuz berdi.",
+    aiRetry: "Qayta urinish",
+
 
 
     profileHub: "Profil markazi",
@@ -270,6 +292,111 @@ const UI = {
     portfolioStatus: "Portfolio",
     certificateCount: "sertifikat",
     skillCount: "ko‘nikma",
+
+    // Notifications / actions
+    loadingProfile: "Profil yuklanmoqda...",
+    resumeLimit: "Siz faqat bitta resume yaratishingiz mumkin.",
+    resumeBuilderOpened: "Resume yaratish oynasi ochildi.",
+    resumeOpened: "Resume ochildi.",
+    resumeEditorOpened: "Resume tahrirlash oynasi ochildi.",
+    portfolioPageOpened: "Portfolio yaratish sahifasi ochildi.",
+    portfolioPageOpenError: "Portfolio yaratish sahifasini ochib bo‘lmadi.",
+    pdfOnly: "Faqat PDF fayl yuklash mumkin.",
+    pdfTooLarge: "PDF hajmi 5 MB dan oshmasligi kerak.",
+    photoOnly: "Faqat rasm faylini yuklang.",
+    photoUploadSuccess: "Profil rasmi yuklandi.",
+    photoUploadError: "Rasmni yuklashda xatolik yuz berdi.",
+    templateSelected: "Shablon tanlandi.",
+    resumeUpdated: "Resume yangilandi.",
+    resumeCreatedSuccess: "Resume muvaffaqiyatli yaratildi.",
+    resumeSaveError: "Resume saqlanmadi.",
+    resumeDeleted: "Resume o‘chirildi.",
+    resumeDeleteError: "Resume o‘chirilmadi.",
+    resumeDuplicated: "Resume nusxalandi.",
+    resumeDuplicateError: "Resume nusxalanmadi.",
+    favoriteAdded: "Resume sevimlilarga qo‘shildi.",
+    favoriteRemoved: "Resume sevimlilardan olib tashlandi.",
+    shareLinkCopied: "Resume havolasi nusxalandi.",
+    shareLinkCopyFailed: "Resume havolasini nusxalab bo‘lmadi.",
+    qrOpened: "QR kod ochildi.",
+    certificateUpdatedSuccess: "Sertifikat ma’lumotlari yangilandi.",
+    certificatePdfRequired: "Avval PDF fayl tanlang.",
+    certificateAddedSuccess: "Sertifikat saqlandi.",
+    certificateSaveError: "Sertifikat saqlanmadi.",
+    certificateDeleted: "Sertifikat o‘chirildi.",
+    certificateDeleteError: "Sertifikat o‘chirilmadi.",
+    certificateShareCopied: "Sertifikat havolasi nusxalandi.",
+    certificateShareFailed: "Havolani nusxalab bo‘lmadi.",
+    shareUnavailable: "Share oynasi ochilmadi. Havolani Copy orqali ulashing.",
+    certificateOpened: "Sertifikat ochildi.",
+    certificateOpenError: "PDFni ochib bo‘lmadi.",
+    certificatePdfNotFound: "PDF fayl topilmadi.",
+    certificateDownloadSuccess: "PDF yuklab olindi.",
+    certificateDownloadError: "PDFni yuklab bo‘lmadi.",
+    resumePdfPreparing: "PDF tayyorlanmoqda...",
+    resumePdfSuccess: "PDF muvaffaqiyatli yuklab olindi.",
+    resumePdfError: "PDF yaratishda xatolik yuz berdi.",
+    resumePreviewNotFound: "Resume preview topilmadi.",
+    refreshSuccess: "Ma’lumotlar yangilandi.",
+    portfolioNotFound: "Avval resume yarating.",
+    profileReloaded: "Profil qayta yuklandi.",
+    editorReset: "Resume formasi tozalandi.",
+    profileLoadError: "Profilni yuklab bo‘lmadi.",
+    resumesLoadError: "Rezyumelarni yuklab bo‘lmadi.",
+    selectedCertificate: "PDF fayl tanlandi.",
+    activityLabel: "Oxirgi harakatlar",
+    photoFormats: "JPG, PNG, WEBP",
+    templatePickerHint: "10 ta professional template'dan birini tanlang.",
+    portfolioOpenHint: "Card ustiga bosib website’ni oching →",
+    sectionAddHint: "Har bir bo‘limni oching. “+ Qo‘shish” tugmasi doim o‘ng tomonda turadi.",
+    resumePreview: "RESUME PREVIEW",
+    share: "Ulashish",
+    qr: "QR",
+    exportPdfAction: "PDF eksport",
+    editAction: "Tahrirlash",
+    certificatePdf: "Sertifikat PDF",
+    certificateQr: "Sertifikat QR",
+    cancelAction: "Bekor qilish",
+    saveAction: "Saqlash",
+    certificateTitleLabel: "Sertifikat ma’lumotlari",
+    certificateSaveLabel: "Sertifikatni saqlash",
+    certificateEditLabel: "Sertifikatni tahrirlash",
+    shareCertificateLabel: "Sertifikatni ulashish",
+    shareResumeLabel: "Resume’ni ulashish",
+    copyLink: "Havolani nusxalash",
+    showQr: "QR kodni ko‘rsatish",
+    copyPublicLink: "Public havolani nusxalash",
+    showQrCode: "QR kodni ko‘rsatish",
+    scanResume: "Public resume’ni ochish uchun skanerlang.",
+    scanCertificate: "QR ushbu sertifikat havolasini ochadi.",
+    appResume: "Resume",
+    appCertificate: "Sertifikat",
+    appDiploma: "Diplom",
+    credentialDocument: "Credential hujjat",
+    dateNotSet: "Sana kiritilmagan",
+    publicWebsite: "Public professional website",
+    portfolioNotCreated: "Hali portfolio yaratilmagan",
+    myPortfolioWebsite: "Mening portfolio saytim",
+    clickCardToOpen: "Card ustiga bosib website’ni oching →",
+    genericError: "Amalni bajarishda xatolik yuz berdi.",
+
+    noResumeCreated: "Hali resume yaratilmagan",
+    professionalResume: "Sizning professional resume",
+    certificatesAndDiplomas: "Sertifikatlar va diplomlar",
+    noCertificatesUploaded: "Hali sertifikat yoki diplom yuklanmagan",
+    portfolioWebsite: "Portfolio sayti",
+    portfolioNeedResume: "Portfolio yaratish uchun resume kerak.",
+    portfolioPreview: "Portfolio ko‘rish",
+    certificatePreview: "Sertifikat ko‘rish",
+    openResumeAria: "Resume’ni ochish",
+    editCertificateAria: "Sertifikatni tahrirlash",
+    deleteCertificateAria: "Sertifikatni o‘chirish",
+    certificateTitlePlaceholder: "Advanced Frontend Certificate",
+    certificateIssuerPlaceholder: "IT Park Uzbekistan",
+    certificateDescriptionPlaceholder: "Advanced frontend development course...",
+    credentialIdPlaceholder: "CERT-2026-001",
+    resumeQrTitle: "Resume QR code",
+    apiError: "Server bilan bog‘lanishda xatolik yuz berdi.",
 
   },
 
@@ -362,6 +489,21 @@ const UI = {
     invalidEmail: "Invalid email format.",
     requiredFirstName: "First name is required.",
     requiredLastName: "Last name is required.",
+    aiReview: "AI Review",
+    aiReviewTitle: "AI Resume Review",
+    aiReviewSubtitle: "Analyze your resume with real AI.",
+    aiReviewButton: "Review with AI",
+    aiReviewLoading: "AI is analyzing your resume...",
+    aiReviewScore: "Resume Score",
+    aiStrengths: "Strengths",
+    aiImprovements: "Needs improvement",
+    aiRecommendation: "AI recommendation",
+    aiSummary: "Summary",
+    aiNoResult: "No AI review result is available.",
+    aiServerError: "Could not connect to the AI server.",
+    aiRequestError: "An error occurred during the AI review.",
+    aiRetry: "Retry",
+
 
 
     profileHub: "Profile Hub",
@@ -416,6 +558,111 @@ const UI = {
     portfolioStatus: "Portfolio",
     certificateCount: "certificates",
     skillCount: "skills",
+
+    // Notifications / actions
+    loadingProfile: "Loading profile...",
+    resumeLimit: "You can create only one resume.",
+    resumeBuilderOpened: "Resume builder opened.",
+    resumeOpened: "Resume opened.",
+    resumeEditorOpened: "Resume editor opened.",
+    portfolioPageOpened: "Portfolio creator opened.",
+    portfolioPageOpenError: "Could not open the portfolio creator.",
+    pdfOnly: "Only PDF files are allowed.",
+    pdfTooLarge: "PDF size must not exceed 5 MB.",
+    photoOnly: "Please upload an image file.",
+    photoUploadSuccess: "Profile photo uploaded.",
+    photoUploadError: "Failed to upload the profile photo.",
+    templateSelected: "Template selected.",
+    resumeUpdated: "Resume updated.",
+    resumeCreatedSuccess: "Resume created successfully.",
+    resumeSaveError: "Resume could not be saved.",
+    resumeDeleted: "Resume deleted.",
+    resumeDeleteError: "Resume could not be deleted.",
+    resumeDuplicated: "Resume duplicated.",
+    resumeDuplicateError: "Resume could not be duplicated.",
+    favoriteAdded: "Resume added to favorites.",
+    favoriteRemoved: "Resume removed from favorites.",
+    shareLinkCopied: "Resume link copied.",
+    shareLinkCopyFailed: "Could not copy the resume link.",
+    qrOpened: "QR code opened.",
+    certificateUpdatedSuccess: "Certificate details updated.",
+    certificatePdfRequired: "Please select a PDF file first.",
+    certificateAddedSuccess: "Certificate saved.",
+    certificateSaveError: "Certificate could not be saved.",
+    certificateDeleted: "Certificate deleted.",
+    certificateDeleteError: "Certificate could not be deleted.",
+    certificateShareCopied: "Certificate link copied.",
+    certificateShareFailed: "Could not copy the certificate link.",
+    shareUnavailable: "Share is unavailable. Use Copy to share the link.",
+    certificateOpened: "Certificate opened.",
+    certificateOpenError: "Could not open the PDF.",
+    certificatePdfNotFound: "PDF file not found.",
+    certificateDownloadSuccess: "PDF downloaded successfully.",
+    certificateDownloadError: "Could not download the PDF.",
+    resumePdfPreparing: "Preparing PDF...",
+    resumePdfSuccess: "PDF downloaded successfully.",
+    resumePdfError: "Could not create the PDF.",
+    resumePreviewNotFound: "Resume preview not found.",
+    refreshSuccess: "Data refreshed.",
+    portfolioNotFound: "Create a resume first.",
+    profileReloaded: "Profile reloaded.",
+    editorReset: "Resume form reset.",
+    profileLoadError: "Could not load the profile.",
+    resumesLoadError: "Could not load resumes.",
+    selectedCertificate: "PDF file selected.",
+    activityLabel: "Recent activity",
+    photoFormats: "JPG, PNG, WEBP",
+    templatePickerHint: "Choose one of 10 professional templates.",
+    portfolioOpenHint: "Click the card to open the website →",
+    sectionAddHint: "Open each section. The “+ Add” button stays on the right.",
+    resumePreview: "RESUME PREVIEW",
+    share: "Share",
+    qr: "QR",
+    exportPdfAction: "Export PDF",
+    editAction: "Edit",
+    certificatePdf: "Certificate PDF",
+    certificateQr: "Certificate QR",
+    cancelAction: "Cancel",
+    saveAction: "Save",
+    certificateTitleLabel: "Certificate details",
+    certificateSaveLabel: "Save certificate",
+    certificateEditLabel: "Edit certificate",
+    shareCertificateLabel: "Share certificate",
+    shareResumeLabel: "Share resume",
+    copyLink: "Copy link",
+    showQr: "QR kodni ko‘rsatish",
+    copyPublicLink: "Copy public link",
+    showQrCode: "QR kodni ko‘rsatish",
+    scanResume: "Scan to open the public resume.",
+    scanCertificate: "This QR code opens the certificate link.",
+    appResume: "Resume",
+    appCertificate: "Certificate",
+    appDiploma: "Diploma",
+    credentialDocument: "Credential document",
+    dateNotSet: "Date not set",
+    publicWebsite: "Public professional website",
+    portfolioNotCreated: "Portfolio not created yet",
+    myPortfolioWebsite: "My portfolio website",
+    clickCardToOpen: "Click the card to open the website →",
+    genericError: "Something went wrong.",
+
+    noResumeCreated: "No resume created yet",
+    professionalResume: "Your professional resume",
+    certificatesAndDiplomas: "Certificates and diplomas",
+    noCertificatesUploaded: "No certificate or diploma uploaded yet",
+    portfolioWebsite: "Portfolio website",
+    portfolioNeedResume: "A resume is required to create a portfolio.",
+    portfolioPreview: "Portfolio preview",
+    certificatePreview: "Certificate preview",
+    openResumeAria: "Open resume",
+    editCertificateAria: "Edit certificate",
+    deleteCertificateAria: "Delete certificate",
+    certificateTitlePlaceholder: "Advanced Frontend Certificate",
+    certificateIssuerPlaceholder: "IT Park Uzbekistan",
+    certificateDescriptionPlaceholder: "Advanced frontend development course...",
+    credentialIdPlaceholder: "CERT-2026-001",
+    resumeQrTitle: "Resume QR code",
+    apiError: "A server error occurred.",
 
   },
 
@@ -566,8 +813,164 @@ const UI = {
     certificateCount: "сертификатов",
     skillCount: "навыков",
 
+    // Уведомления / действия
+    loadingProfile: "Загрузка профиля...",
+    resumeLimit: "Можно создать только одно резюме.",
+    resumeBuilderOpened: "Открылся конструктор резюме.",
+    resumeOpened: "Резюме открыто.",
+    resumeEditorOpened: "Открылось редактирование резюме.",
+    portfolioPageOpened: "Открылся конструктор портфолио.",
+    portfolioPageOpenError: "Не удалось открыть конструктор портфолио.",
+    pdfOnly: "Разрешены только PDF-файлы.",
+    pdfTooLarge: "Размер PDF не должен превышать 5 МБ.",
+    photoOnly: "Загрузите файл изображения.",
+    photoUploadSuccess: "Фото профиля загружено.",
+    photoUploadError: "Не удалось загрузить фото профиля.",
+    templateSelected: "Шаблон выбран.",
+    resumeUpdated: "Резюме обновлено.",
+    resumeCreatedSuccess: "Резюме успешно создано.",
+    resumeSaveError: "Не удалось сохранить резюме.",
+    resumeDeleted: "Резюме удалено.",
+    resumeDeleteError: "Не удалось удалить резюме.",
+    resumeDuplicated: "Резюме скопировано.",
+    resumeDuplicateError: "Не удалось скопировать резюме.",
+    favoriteAdded: "Резюме добавлено в избранное.",
+    favoriteRemoved: "Резюме удалено из избранного.",
+    shareLinkCopied: "Ссылка на резюме скопирована.",
+    shareLinkCopyFailed: "Не удалось скопировать ссылку на резюме.",
+    qrOpened: "QR-код открыт.",
+    certificateUpdatedSuccess: "Данные сертификата обновлены.",
+    certificatePdfRequired: "Сначала выберите PDF-файл.",
+    certificateAddedSuccess: "Сертификат сохранен.",
+    certificateSaveError: "Не удалось сохранить сертификат.",
+    certificateDeleted: "Сертификат удален.",
+    certificateDeleteError: "Не удалось удалить сертификат.",
+    certificateShareCopied: "Ссылка на сертификат скопирована.",
+    certificateShareFailed: "Не удалось скопировать ссылку на сертификат.",
+    shareUnavailable: "Окно Share недоступно. Используйте Copy для отправки ссылки.",
+    certificateOpened: "Сертификат открыт.",
+    certificateOpenError: "Не удалось открыть PDF.",
+    certificatePdfNotFound: "PDF-файл не найден.",
+    certificateDownloadSuccess: "PDF успешно скачан.",
+    certificateDownloadError: "Не удалось скачать PDF.",
+    resumePdfPreparing: "Подготовка PDF...",
+    resumePdfSuccess: "PDF успешно скачан.",
+    resumePdfError: "Не удалось создать PDF.",
+    resumePreviewNotFound: "Предпросмотр резюме не найден.",
+    refreshSuccess: "Данные обновлены.",
+    portfolioNotFound: "Сначала создайте резюме.",
+    profileReloaded: "Профиль перезагружен.",
+    editorReset: "Форма резюме очищена.",
+    profileLoadError: "Не удалось загрузить профиль.",
+    resumesLoadError: "Не удалось загрузить резюме.",
+    selectedCertificate: "PDF-файл выбран.",
+    activityLabel: "Последние действия",
+    photoFormats: "JPG, PNG, WEBP",
+    templatePickerHint: "Выберите один из 10 профессиональных шаблонов.",
+    portfolioOpenHint: "Нажмите на карточку, чтобы открыть сайт →",
+    sectionAddHint: "Откройте каждый раздел. Кнопка «+ Добавить» всегда справа.",
+    resumePreview: "ПРЕДПРОСМОТР РЕЗЮМЕ",
+    share: "Поделиться",
+    qr: "QR",
+    exportPdfAction: "Экспорт PDF",
+    editAction: "Редактировать",
+    certificatePdf: "PDF сертификата",
+    certificateQr: "QR сертификата",
+    cancelAction: "Отмена",
+    saveAction: "Сохранить",
+    certificateTitleLabel: "Данные сертификата",
+    certificateSaveLabel: "Сохранить сертификат",
+    certificateEditLabel: "Редактировать сертификат",
+    shareCertificateLabel: "Поделиться сертификатом",
+    shareResumeLabel: "Поделиться резюме",
+    copyLink: "Копировать ссылку",
+    showQr: "Показать QR-код",
+    copyPublicLink: "Копировать публичную ссылку",
+    showQrCode: "Показать QR-код",
+    scanResume: "Сканируйте, чтобы открыть публичное резюме.",
+    scanCertificate: "QR-код открывает ссылку на сертификат.",
+    appResume: "Резюме",
+    appCertificate: "Сертификат",
+    appDiploma: "Диплом",
+    credentialDocument: "Документ об образовании",
+    dateNotSet: "Дата не указана",
+    publicWebsite: "Публичный профессиональный сайт",
+    portfolioNotCreated: "Портфолио пока не создано",
+    myPortfolioWebsite: "Мой сайт-портфолио",
+    clickCardToOpen: "Нажмите на карточку, чтобы открыть сайт →",
+    genericError: "Произошла ошибка.",
+
+    noResumeCreated: "Резюме пока не создано",
+    professionalResume: "Ваше профессиональное резюме",
+    certificatesAndDiplomas: "Сертификаты и дипломы",
+    noCertificatesUploaded: "Сертификат или диплом пока не загружен",
+    portfolioWebsite: "Сайт-портфолио",
+    portfolioNeedResume: "Для создания портфолио необходимо резюме.",
+    portfolioPreview: "Предпросмотр портфолио",
+    certificatePreview: "Предпросмотр сертификата",
+    openResumeAria: "Открыть резюме",
+    editCertificateAria: "Редактировать сертификат",
+    deleteCertificateAria: "Удалить сертификат",
+    certificateTitlePlaceholder: "Advanced Frontend Certificate",
+    certificateIssuerPlaceholder: "IT Park Uzbekistan",
+    certificateDescriptionPlaceholder: "Advanced frontend development course...",
+    credentialIdPlaceholder: "CERT-2026-001",
+    resumeQrTitle: "QR-код резюме",
+    aiReview: "AI-анализ",
+    aiReviewTitle: "AI-анализ резюме",
+    aiReviewSubtitle: "Проверьте резюме с помощью настоящего AI.",
+    aiReviewButton: "Проверить с AI",
+    aiReviewLoading: "AI анализирует ваше резюме...",
+    aiReviewScore: "Оценка резюме",
+    aiStrengths: "Сильные стороны",
+    aiImprovements: "Что улучшить",
+    aiRecommendation: "Рекомендация AI",
+    aiSummary: "Итог",
+    aiNoResult: "Результат AI-анализа отсутствует.",
+    aiServerError: "Не удалось подключиться к AI-серверу.",
+    aiRequestError: "Во время AI-анализа произошла ошибка.",
+    aiRetry: "Повторить",
+    apiError: "Произошла ошибка сервера.",
+
   },
 };
+
+// ============================================================
+// ANT DESIGN NOTIFICATIONS
+// ============================================================
+
+function getActiveUi() {
+  const activeLang =
+    (typeof window !== "undefined" &&
+      localStorage.getItem("app_lang")) ||
+    "uz";
+
+  return UI[activeLang] || UI.uz;
+}
+
+const notify = {
+  success(key, fallback = "") {
+    const tr = getActiveUi();
+    message.success(tr[key] || fallback || key);
+  },
+  error(key, fallback = "") {
+    const tr = getActiveUi();
+    message.error(tr[key] || fallback || key);
+  },
+  info(key, fallback = "") {
+    const tr = getActiveUi();
+    message.info(tr[key] || fallback || key);
+  },
+  warning(key, fallback = "") {
+    const tr = getActiveUi();
+    message.warning(tr[key] || fallback || key);
+  },
+};
+
+function localizedError(error, fallbackKey = "genericError") {
+  const tr = getActiveUi();
+  return tr[fallbackKey] || tr.genericError || error?.message || "Error";
+}
 
 // ============================================================
 // EMPTY RESUME
@@ -1333,7 +1736,7 @@ async function downloadCertificatePdf(userId, certificate, notify = true) {
     const blob = stored || fallback;
 
     if (!blob) {
-      if (notify) message.error("PDF fayl topilmadi.");
+      if (notify) notify.error("certificatePdfNotFound");
       return false;
     }
 
@@ -1359,11 +1762,11 @@ async function downloadCertificatePdf(userId, certificate, notify = true) {
     anchor.click();
     anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    if (notify) message.success("PDF yuklab olindi.");
+    if (notify) notify.success("certificateDownloadSuccess");
     return true;
   } catch (error) {
     console.error("CERTIFICATE DOWNLOAD ERROR:", error);
-    if (notify) message.error(error?.message || "PDFni yuklab bo‘lmadi.");
+    if (notify) notify.error("certificateDownloadError");
     return false;
   }
 }
@@ -1508,6 +1911,47 @@ function writeFavoriteIds(ids) {
 // MAIN COMPONENT
 // ============================================================
 
+function buildAiResumePayload(resume) {
+  const data =
+    resume?.parsedData ||
+    safeParse(resume?.resumeData || "{}") ||
+    createEmptyResume();
+
+  return {
+    id: resume?.id || null,
+    title: resume?.title || "Resume",
+    templateId: resume?.templateId || "",
+    primaryColor: resume?.primaryColor || PALETTE.deepSteelBlue,
+    data: {
+      personalInfo: {
+        ...(data.personalInfo || {}),
+        profilePhoto: "",
+      },
+      professionalSummary: data.professionalSummary || "",
+      workExperience: Array.isArray(data.workExperience)
+        ? data.workExperience
+        : [],
+      education: Array.isArray(data.education)
+        ? data.education
+        : [],
+      skills: normalizeSkills(data.skills),
+      languages: normalizeLanguages(data.languages),
+      projects: Array.isArray(data.projects)
+        ? data.projects
+        : [],
+      certifications: Array.isArray(data.certifications)
+        ? data.certifications
+        : [],
+      socialLinks: {
+        ...(data.socialLinks || {}),
+      },
+      hobbies: Array.isArray(data.hobbies)
+        ? data.hobbies
+        : [],
+    },
+  };
+}
+
 export default function Index() {
   const canvasRef =
     useRef(null);
@@ -1604,6 +2048,9 @@ export default function Index() {
 
   const [resumePreviewResume, setResumePreviewResume] = useState(null);
   const [resumePreviewOpen, setResumePreviewOpen] = useState(false);
+  const [aiReviewOpen, setAiReviewOpen] = useState(false);
+  const [aiReviewLoading, setAiReviewLoading] = useState(false);
+  const [aiReviewData, setAiReviewData] = useState(null);
   const [openInfoSection, setOpenInfoSection] = useState("");
   const certificateInputRef = useRef(null);
 
@@ -2174,6 +2621,105 @@ export default function Index() {
   }, []);
 
   // ==========================================================
+  // REAL AI RESUME REVIEW
+  // ==========================================================
+
+  const runAiResumeReview = async (resume) => {
+    if (!resume) return;
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 45000);
+    const normalizedResume = buildAiResumePayload(resume);
+
+    setAiReviewData(null);
+    setAiReviewOpen(true);
+    setAiReviewLoading(true);
+
+    try {
+      const response = await fetch(
+        `${AI_API_BASE}/api/ai/review`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            resume: normalizedResume,
+            language: lang,
+          }),
+          signal: controller.signal,
+        }
+      );
+
+      const rawText = await response.text();
+      let payload = null;
+
+      try {
+        payload = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        payload = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.message ||
+            `${t.aiServerError} (${response.status})`
+        );
+      }
+
+      if (!payload?.success || !payload?.review) {
+        throw new Error(
+          payload?.message || t.aiRequestError
+        );
+      }
+
+      const review = {
+        ...payload.review,
+        score: Math.max(
+          0,
+          Math.min(100, Number(payload.review.score) || 0)
+        ),
+        strengths: Array.isArray(payload.review.strengths)
+          ? payload.review.strengths.filter(Boolean)
+          : [],
+        improvements: Array.isArray(payload.review.improvements)
+          ? payload.review.improvements.filter(Boolean)
+          : [],
+        sections:
+          payload.review.sections &&
+          typeof payload.review.sections === "object"
+            ? payload.review.sections
+            : {},
+        recommendation:
+          typeof payload.review.recommendation === "string"
+            ? payload.review.recommendation
+            : "",
+        summary:
+          typeof payload.review.summary === "string"
+            ? payload.review.summary
+            : "",
+      };
+
+      setAiReviewData(review);
+    } catch (error) {
+      const isTimeout =
+        error?.name === "AbortError";
+      const errorMessage = isTimeout
+        ? `${t.aiServerError} (timeout)`
+        : error?.message || t.aiRequestError;
+
+      console.error("REAL AI REVIEW ERROR:", error);
+      setAiReviewData({
+        __error: errorMessage,
+      });
+      message.error(errorMessage);
+    } finally {
+      window.clearTimeout(timeoutId);
+      setAiReviewLoading(false);
+    }
+  };
+
+  // ==========================================================
   // RESUME CARD PREVIEW
   // ==========================================================
 
@@ -2195,6 +2741,7 @@ export default function Index() {
         createEmptyResume(),
     });
     setResumePreviewOpen(true);
+    notify.info("resumeOpened");
   };
 
   const exportResumePdf = async () => {
@@ -2209,13 +2756,13 @@ export default function Index() {
     );
 
     if (!sourceNode || !exportNode) {
-      message.error("Resume preview topilmadi.");
+      notify.error("resumePreviewNotFound");
       return;
     }
 
     try {
       message.loading({
-        content: "PDF tayyorlanmoqda...",
+        content: getActiveUi().resumePdfPreparing,
         key: "resume-pdf-export",
         duration: 0,
       });
@@ -2294,16 +2841,14 @@ export default function Index() {
       pdf.save(`${safeName || "resume"}.pdf`);
 
       message.success({
-        content: "PDF muvaffaqiyatli yuklab olindi.",
+        content: getActiveUi().resumePdfSuccess,
         key: "resume-pdf-export",
       });
     } catch (error) {
       console.error("RESUME PDF EXPORT ERROR:", error);
 
       message.error({
-        content:
-          error?.message ||
-          "PDF yaratishda xatolik yuz berdi.",
+        content: getActiveUi().resumePdfError,
         key: "resume-pdf-export",
       });
     }
@@ -2324,9 +2869,7 @@ export default function Index() {
   const openCreateResume =
     () => {
       if (myResumes.length >= 1) {
-        message.info(
-          "Sizga faqat bitta resume yaratishga ruxsat berilgan."
-        );
+        notify.info("resumeLimit");
         return;
       }
 
@@ -2353,6 +2896,7 @@ export default function Index() {
       );
 
       loadCurrentUser();
+      notify.info("resumeBuilderOpened");
     };
 
   // ==========================================================
@@ -2390,6 +2934,7 @@ export default function Index() {
       setIsBuilderOpen(
         true
       );
+      notify.info("resumeEditorOpened");
     };
 
 
@@ -2424,9 +2969,7 @@ export default function Index() {
         error
       );
 
-      message.error(
-        "Portfolio yaratish sahifasini ochib bo‘lmadi."
-      );
+      notify.error("portfolioPageOpenError");
     }
   };
   // ____________________
@@ -2706,9 +3249,7 @@ export default function Index() {
             "image/"
           )
         ) {
-          message.error(
-            "Faqat rasm faylini yuklang."
-          );
+          notify.error("photoOnly");
 
           return Upload.LIST_IGNORE;
         }
@@ -2725,9 +3266,7 @@ export default function Index() {
           compressed
         );
 
-        message.success(
-          t.uploadPhoto
-        );
+        notify.success("photoUploadSuccess");
 
         return false;
       } catch (error) {
@@ -2736,9 +3275,7 @@ export default function Index() {
           error
         );
 
-        message.error(
-          "Rasmni yuklashda xatolik."
-        );
+        notify.error("photoUploadError");
 
         return Upload.LIST_IGNORE;
       }
@@ -2757,9 +3294,7 @@ export default function Index() {
       if (
         !resumeData.personalInfo.firstName.trim()
       ) {
-        message.error(
-          t.requiredFirstName
-        );
+        notify.error("requiredFirstName");
 
         return;
       }
@@ -2767,9 +3302,7 @@ export default function Index() {
       if (
         !resumeData.personalInfo.lastName.trim()
       ) {
-        message.error(
-          t.requiredLastName
-        );
+        notify.error("requiredLastName");
 
         return;
       }
@@ -2781,9 +3314,7 @@ export default function Index() {
             .email
         )
       ) {
-        message.error(
-          t.invalidEmail
-        );
+        notify.error("invalidEmail");
 
         return;
       }
@@ -2791,6 +3322,7 @@ export default function Index() {
       setBuilderStep(
         "templates"
       );
+      notify.success("templatePickerHint");
     };
 
   // ==========================================================
@@ -2972,10 +3504,10 @@ export default function Index() {
         .then(() => {
           loadMyResumes();
 
-          message.success(
+          notify.success(
             editingResumeId
-              ? t.edit + " ✓"
-              : t.resumeCreated
+              ? "resumeUpdated"
+              : "resumeCreatedSuccess"
           );
 
           setBuilderStep(
@@ -2988,9 +3520,7 @@ export default function Index() {
               error
             );
 
-            message.error(
-              error.message
-            );
+            notify.error("resumeSaveError");
 
             setBuilderStep(
               "templates"
@@ -3083,7 +3613,7 @@ export default function Index() {
               readActivities(currentUser?.id)
             );
 
-            message.success(t.delete);
+            notify.success("resumeDeleted");
             resolve(true);
           } catch (error) {
             console.error(
@@ -3091,10 +3621,7 @@ export default function Index() {
               error
             );
 
-            message.error(
-              error.message ||
-              "Rezyumeni o‘chirib bo‘lmadi."
-            );
+            notify.error("resumeDeleteError");
 
             resolve(false);
           }
@@ -3152,17 +3679,13 @@ export default function Index() {
       writeActivity(currentUser?.id, activity);
       setActivities(readActivities(currentUser?.id));
 
-      message.success(
-        t.delete
-      );
+      notify.success("resumeDeleted");
     } catch (error) {
       console.error(
         error
       );
 
-      message.error(
-        error.message
-      );
+      notify.error("resumeDeleteError");
     }
   };
 
@@ -3209,10 +3732,10 @@ export default function Index() {
         subtitle: resume.title || baseData.personalInfo?.professionalTitle || "Resume",
       });
       setActivities(readActivities(currentUser?.id));
-      message.success("Resume nusxalandi.");
+      notify.success("resumeDuplicated");
     } catch (error) {
       console.error("DUPLICATE RESUME ERROR:", error);
-      message.error(error.message || "Resume nusxalanmadi.");
+      notify.error("resumeDuplicateError");
     }
   };
 
@@ -3227,6 +3750,10 @@ export default function Index() {
 
     setFavoriteIds(next);
     writeFavoriteIds(next);
+
+    notify.success(
+      exists ? "favoriteRemoved" : "favoriteAdded"
+    );
   };
 
   const buildResumeShareUrl = (resumeId) => {
@@ -3239,6 +3766,7 @@ export default function Index() {
   const openShareModal = (resume) => {
     setShareResume(resume);
     setShareOpen(true);
+    notify.info("share");
   };
 
   const copyShareLink = async (resume) => {
@@ -3246,7 +3774,7 @@ export default function Index() {
 
     try {
       await navigator.clipboard.writeText(url);
-      message.success("Resume link copied.");
+      notify.success("shareLinkCopied");
     } catch {
       const input = document.createElement("input");
       input.value = url;
@@ -3254,12 +3782,13 @@ export default function Index() {
       input.select();
       document.execCommand("copy");
       input.remove();
-      message.success("Resume link copied.");
+      notify.success("shareLinkCopied");
     }
   };
 
   const openQrModal = (resume) => {
     setQrResume(resume);
+    notify.info("qrOpened");
   };
 
   useEffect(() => {
@@ -3334,6 +3863,7 @@ export default function Index() {
 
   const openCertificateUploader = () => {
     certificateInputRef.current?.click();
+    notify.info("certificatePdfRequired");
   };
 
   const updateUserCertificates = async (certificates) => {
@@ -3391,12 +3921,12 @@ export default function Index() {
       actualFile.name?.toLowerCase().endsWith(".pdf");
 
     if (!isPdf) {
-      message.error("Faqat PDF fayl yuklash mumkin.");
+      notify.error("pdfOnly");
       return Upload.LIST_IGNORE;
     }
 
     if (actualFile.size > 5 * 1024 * 1024) {
-      message.error("PDF hajmi 5 MB dan oshmasligi kerak.");
+      notify.error("pdfTooLarge");
       return Upload.LIST_IGNORE;
     }
 
@@ -3411,6 +3941,7 @@ export default function Index() {
       description: "",
     });
     setCertificateDetailsOpen(true);
+    notify.success("selectedCertificate");
     return Upload.LIST_IGNORE;
   };
 
@@ -3429,6 +3960,7 @@ export default function Index() {
       description: certificate.description || "",
     });
     setCertificateDetailsOpen(true);
+    notify.info("certificateEditLabel");
   };
 
   const submitCertificate = async () => {
@@ -3446,7 +3978,7 @@ export default function Index() {
               title:
                 certificateForm.title.trim() ||
                 item.name ||
-                "Certificate",
+                t.appCertificate,
               credentialType:
                 certificateForm.credentialType === "diploma"
                   ? "diploma"
@@ -3479,12 +4011,12 @@ export default function Index() {
             "Certificate details updated.",
         });
         setActivities(readActivities(currentUser.id));
-        message.success("Sertifikat ma’lumotlari yangilandi.");
+        notify.success("certificateUpdatedSuccess");
         return;
       }
 
       if (!pendingCertificateFile) {
-        message.error("Avval PDF fayl tanlang.");
+        notify.error("certificatePdfRequired");
         return;
       }
 
@@ -3539,13 +4071,10 @@ export default function Index() {
         subtitle: newCertificate.title,
       });
       setActivities(readActivities(currentUser.id));
-      message.success("Certificate saqlandi.");
+      notify.success("certificateAddedSuccess");
     } catch (error) {
       console.error("CERTIFICATE SAVE ERROR:", error);
-      message.error(
-        error.message ||
-        "Certificate saqlanmadi."
-      );
+      notify.error("certificateSaveError");
     } finally {
       setUploadingCertificate(false);
     }
@@ -3621,9 +4150,7 @@ export default function Index() {
               )
             );
 
-            message.success(
-              "Certificate o‘chirildi."
-            );
+            notify.success("certificateDeleted");
 
             resolve(true);
           } catch (error) {
@@ -3632,10 +4159,7 @@ export default function Index() {
               error
             );
 
-            message.error(
-              error.message ||
-              "Certificate o‘chirilmadi."
-            );
+            notify.error("certificateDeleteError");
 
             resolve(false);
           }
@@ -3673,6 +4197,8 @@ export default function Index() {
         certificate
       ),
     });
+
+    notify.info("shareCertificateLabel");
   };
 
   const copyCertificateShareLink = async () => {
@@ -3712,17 +4238,13 @@ export default function Index() {
         textarea.remove();
       }
 
-      message.success(
-        "Sertifikat havolasi nusxalandi."
-      );
+      notify.success("certificateShareCopied");
     } catch (error) {
       console.error(
         "CERTIFICATE COPY ERROR:",
         error
       );
-      message.error(
-        "Havolani nusxalab bo‘lmadi."
-      );
+      notify.error("certificateShareFailed");
     }
   };
 
@@ -3745,6 +4267,7 @@ export default function Index() {
           url:
             certificateShare.url,
         });
+        notify.success("certificateShareCopied");
       } else {
         await copyCertificateShareLink();
       }
@@ -3762,15 +4285,14 @@ export default function Index() {
 
       // Native share can be unavailable or rejected on desktop.
       // Keep the share modal open and let the user copy the link.
-      message.info(
-        "Share oynasi ochilmadi. Havolani Copy orqali ulashing."
-      );
+      notify.info("shareUnavailable");
     }
   };
 
 
   const openCertificateQr = (certificate) => {
     setCertificateQr(certificate);
+    notify.info("qrOpened");
   };
 
   const closeCertificatePreview = () => {
@@ -3791,7 +4313,7 @@ export default function Index() {
       const blob = stored || fallback;
 
       if (!blob) {
-        message.error("PDF fayl topilmadi.");
+        notify.error("certificatePdfNotFound");
         return;
       }
 
@@ -3800,9 +4322,10 @@ export default function Index() {
         certificate,
         url,
       });
+      notify.info("certificateOpened");
     } catch (error) {
       console.error("CERTIFICATE PREVIEW ERROR:", error);
-      message.error("PDFni ochib bo‘lmadi.");
+      notify.error("certificateOpenError");
     }
   };
 
@@ -3907,6 +4430,7 @@ export default function Index() {
       );
 
       loadCurrentUser();
+      notify.info("editorReset");
     };
 
   // ==========================================================
@@ -4614,7 +5138,7 @@ export default function Index() {
                       textTransform: "uppercase",
                     }}
                   >
-                    CEOBACE PROFILE HUB
+                    {t.profileHub}
                   </div>
 
                   <Title
@@ -4624,11 +5148,11 @@ export default function Index() {
                       fontSize: 28,
                     }}
                   >
-                    Sizning ma’lumotlaringiz
+                    {t.yourInformation}
                   </Title>
 
                   <Text type="secondary">
-                    Rezyumelar, sertifikatlar va portfolio saytini ochib boshqaring.
+                    {t.profileHubSubtitle}
                   </Text>
                 </div>
 
@@ -4641,17 +5165,17 @@ export default function Index() {
                     fontWeight: 700,
                   }}
                 >
-                  {myResumes.length} Resume · {certificates.length} PDF
+                  {myResumes.length} {t.resumeStatus} · {certificates.length} PDF
                 </Tag>
               </div>
 
               {/* REZYUMELAR */}
               <InfoAccordion
-                title="Rezyumelar"
+                title={t.myResumes}
                 subtitle={
                   myResumes.length
-                    ? "Sizning professional resume"
-                    : "Hali resume yaratilmagan"
+                    ? t.professionalResume
+                    : t.noResumeCreated
                 }
                 count={myResumes.length}
                 open={openInfoSection === "resume"}
@@ -4876,7 +5400,7 @@ export default function Index() {
                           >
                             <button
                               type="button"
-                              aria-label="Open resume"
+                              aria-label={t.openResumeAria}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 openResumePreview(resume);
@@ -4923,11 +5447,11 @@ export default function Index() {
 
               {/* SERTIFIKATLAR VA DIPLOMLAR */}
               <InfoAccordion
-                title="Sertifikatlar va diplomlar"
+                title={t.certificatesAndDiplomas}
                 subtitle={
                   certificates.length
-                    ? "PDF credential hujjatlar"
-                    : "Hali PDF yuklanmagan"
+                    ? t.credentialDocument
+                    : t.noCertificatesUploaded
                 }
                 count={certificates.length}
                 open={openInfoSection === "certificates"}
@@ -5041,7 +5565,7 @@ export default function Index() {
                             >
                               {certificate.title ||
                                 certificate.name ||
-                                "Certificate"}
+                                t.appCertificate}
                             </div>
 
                             <div
@@ -5077,8 +5601,8 @@ export default function Index() {
                               >
                                 {certificate.credentialType ===
                                   "diploma"
-                                  ? "Diploma"
-                                  : "Certificate"}
+                                  ? t.appDiploma
+                                  : t.appCertificate}
                               </Tag>
 
                               <span
@@ -5089,7 +5613,7 @@ export default function Index() {
                                 }}
                               >
                                 {certificate.issueDate ||
-                                  "Date not set"}
+                                  t.dateNotSet}
                               </span>
 
                               <span
@@ -5116,7 +5640,7 @@ export default function Index() {
                               fontSize: 9,
                             }}
                           >
-                            Click to open
+                            {t.clickToOpen}
                           </div>
                         </div>
 
@@ -5133,7 +5657,7 @@ export default function Index() {
                         >
                           <button
                             type="button"
-                            aria-label="Edit certificate"
+                            aria-label={t.editCertificateAria}
                             onClick={(event) => {
                               event.stopPropagation();
                               editCertificate(certificate);
@@ -5163,7 +5687,7 @@ export default function Index() {
 
                           <button
                             type="button"
-                            aria-label="Delete certificate"
+                            aria-label={t.deleteCertificateAria}
                             onClick={(event) => {
                               event.stopPropagation();
                               removeCertificate(
@@ -5206,11 +5730,11 @@ export default function Index() {
 
               {/* PORTFOLIO SAYTI */}
               <InfoAccordion
-                title="Portfolio sayti"
+                title={t.portfolioWebsite}
                 subtitle={
                   getLatestLocalPortfolio()?.slug
-                    ? "Public professional website"
-                    : "Hali portfolio yaratilmagan"
+                    ? t.publicWebsite
+                    : t.portfolioNotCreated
                 }
                 count={
                   getLatestLocalPortfolio()?.slug
@@ -5229,9 +5753,7 @@ export default function Index() {
                   if (myResumes[0]) {
                     openPortfolioGenerator(myResumes[0]);
                   } else {
-                    message.info(
-                      "Avval resume yarating."
-                    );
+                    notify.info("portfolioNotFound");
                   }
                 }}
                 addLabel={
@@ -5253,7 +5775,7 @@ export default function Index() {
                         image={
                           Empty.PRESENTED_IMAGE_SIMPLE
                         }
-                        description="Portfolio yaratish uchun resume kerak."
+                        description={t.portfolioNeedResume}
                       />
                     );
                   }
@@ -5296,7 +5818,7 @@ export default function Index() {
                             fontWeight: 700,
                           }}
                         >
-                          Published
+                          {t.published}
                         </Tag>
 
                         <Title
@@ -5307,7 +5829,7 @@ export default function Index() {
                           }}
                         >
                           {latest.title ||
-                            "Mening portfolio saytim"}
+                            t.myPortfolioWebsite}
                         </Title>
 
                         <Text type="secondary">
@@ -5322,7 +5844,7 @@ export default function Index() {
                               colors.textSecondary,
                           }}
                         >
-                          Card ustiga bosib website’ni oching →
+                          {t.portfolioOpenHint}
                         </div>
                       </div>
 
@@ -5336,7 +5858,7 @@ export default function Index() {
                         }}
                       >
                         <iframe
-                          title="Portfolio preview"
+                          title={t.portfolioPreview}
                           src={siteUrl}
                           style={{
                             width: "220%",
@@ -5370,7 +5892,7 @@ export default function Index() {
                   fontSize: 11,
                 }}
               >
-                Har bir bo‘limni oching. “+ Qo‘shish” tugmasi doim o‘ng tomonda turadi.
+                {t.sectionAddHint}
               </div>
             </Card>
 
@@ -5492,8 +6014,8 @@ export default function Index() {
                       ? "linear-gradient(145deg,#122B34,#0F242C)"
                       : "linear-gradient(145deg,#FFFFFF,#F7FAFB)",
                     border: `1px solid ${isDarkMode
-                        ? "rgba(255,255,255,.09)"
-                        : "#E1E9ED"
+                      ? "rgba(255,255,255,.09)"
+                      : "#E1E9ED"
                       }`,
                     boxShadow: isDarkMode
                       ? "0 14px 32px rgba(0,0,0,.10)"
@@ -5872,7 +6394,7 @@ export default function Index() {
                           textTransform: "uppercase",
                         }}
                       >
-                        LIVE ACTIVITY
+                        {t.activityLabel}
                       </div>
 
                       <Title
@@ -6464,7 +6986,7 @@ export default function Index() {
                                   colors.text,
                               }}
                             >
-                              Loading profile...
+                              {t.loadingProfile}
                             </div>
                           </div>
                         ) : userError ? (
@@ -6985,7 +7507,7 @@ export default function Index() {
                                           colors.textSecondary,
                                       }}
                                     >
-                                      JPG, PNG, WEBP
+                                      {t.photoFormats}
                                     </div>
                                   </div>
                                 </div>
@@ -8572,9 +9094,10 @@ export default function Index() {
                                 icon={
                                   <ReloadOutlined />
                                 }
-                                onClick={
-                                  loadCurrentUser
-                                }
+                                onClick={async () => {
+                                  await loadCurrentUser();
+                                  notify.success("profileReloaded");
+                                }}
                               >
                                 {
                                   t.reloadProfile
@@ -8673,7 +9196,7 @@ export default function Index() {
                                 colors.textSecondary,
                             }}
                           >
-                            10 ta professional template'dan birini tanlang.
+                            {t.templatePickerHint}
                           </Text>
                         </div>
 
@@ -9503,7 +10026,7 @@ export default function Index() {
                         letterSpacing: ".8px",
                       }}
                     >
-                      RESUME PREVIEW
+                      {t.resumePreview}
                     </div>
                     <Text
                       strong
@@ -9544,7 +10067,18 @@ export default function Index() {
                       icon={<DownloadOutlined />}
                       onClick={exportResumePdf}
                     >
-                      Export PDF
+                      {t.exportPdfAction}
+                    </Button>
+
+                    <Button
+                      icon={<RobotOutlined />}
+                      onClick={() =>
+                        runAiResumeReview(
+                          resumePreviewResume
+                        )
+                      }
+                    >
+                      {t.aiReviewButton}
                     </Button>
 
                     <Button
@@ -9608,7 +10142,287 @@ export default function Index() {
             )}
           </Modal>
 
+          <Modal
+            open={aiReviewOpen}
+            onCancel={() => setAiReviewOpen(false)}
+            footer={null}
+            centered
+            width={760}
+            title={
+              <Space>
+                <RobotOutlined />
+                <span>{t.aiReviewTitle}</span>
+              </Space>
+            }
+          >
+            <Text
+              type="secondary"
+              style={{ display: "block", marginBottom: 18 }}
+            >
+              {t.aiReviewSubtitle}
+            </Text>
+
+            {aiReviewLoading ? (
+              <div
+                style={{
+                  minHeight: 260,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                }}
+              >
+                <Spin size="large" />
+                <Text
+                  strong
+                  style={{
+                    marginTop: 16,
+                    color: colors.text,
+                  }}
+                >
+                  {t.aiReviewLoading}
+                </Text>
+              </div>
+            ) : aiReviewData?.__error ? (
+              <Alert
+                type="error"
+                showIcon
+                message={t.aiRequestError}
+                description={aiReviewData.__error}
+                action={
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      runAiResumeReview(
+                        resumePreviewResume
+                      )
+                    }
+                  >
+                    {t.aiRetry}
+                  </Button>
+                }
+              />
+            ) : aiReviewData ? (
+              <div>
+                <Card
+                  style={{
+                    borderRadius: 18,
+                    marginBottom: 16,
+                    background: isDarkMode
+                      ? "#102A35"
+                      : "#F3FAFC",
+                  }}
+                >
+                  <Row gutter={20} align="middle">
+                    <Col xs={24} sm={8}>
+                      <div style={{ textAlign: "center" }}>
+                        <Progress
+                          type="circle"
+                          percent={Math.max(
+                            0,
+                            Math.min(
+                              100,
+                              Number(aiReviewData.score) || 0
+                            )
+                          )}
+                          size={118}
+                        />
+                        <Text
+                          strong
+                          style={{
+                            display: "block",
+                            marginTop: 10,
+                          }}
+                        >
+                          {t.aiReviewScore}
+                        </Text>
+                      </div>
+                    </Col>
+
+                    <Col xs={24} sm={16}>
+                      <Title
+                        level={4}
+                        style={{
+                          margin: "0 0 8px",
+                          color: colors.text,
+                        }}
+                      >
+                        {aiReviewData.summary ||
+                          t.aiNoResult}
+                      </Title>
+
+                      {Array.isArray(
+                        aiReviewData.strengths
+                      ) &&
+                        aiReviewData.strengths.length > 0 && (
+                          <div style={{ marginBottom: 12 }}>
+                            <Text strong>
+                              {t.aiStrengths}
+                            </Text>
+                            <div
+                              style={{
+                                marginTop: 7,
+                                display: "grid",
+                                gap: 5,
+                              }}
+                            >
+                              {aiReviewData.strengths.map(
+                                (item, index) => (
+                                  <Text
+                                    key={`strength-${index}`}
+                                    type="secondary"
+                                  >
+                                    • {item}
+                                  </Text>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                    </Col>
+                  </Row>
+                </Card>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit,minmax(220px,1fr))",
+                    gap: 10,
+                  }}
+                >
+                  {(aiReviewData.sections || {}) &&
+                    Object.entries(
+                      aiReviewData.sections || {}
+                    ).map(([key, value]) => {
+                      const labelMap = {
+                        personalInfo: t.personalInfo,
+                        summary: t.aiSummary,
+                        experience: t.workExperience,
+                        education: t.education,
+                        skills: t.skills,
+                        projects: t.projects,
+                        certificates:
+                          t.certificates,
+                        socialLinks:
+                          t.socialLinks,
+                      };
+
+                      return (
+                        <Card
+                          key={key}
+                          size="small"
+                          style={{
+                            borderRadius: 14,
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent:
+                                "space-between",
+                              gap: 8,
+                            }}
+                          >
+                            <Text strong>
+                              {labelMap[key] || key}
+                            </Text>
+                            <Tag color="blue">
+                              {Math.max(
+                                0,
+                                Math.min(
+                                  100,
+                                  Number(value?.score) || 0
+                                )
+                              )}/100
+                            </Tag>
+                          </div>
+                          <Text
+                            type="secondary"
+                            style={{
+                              display: "block",
+                              marginTop: 7,
+                              fontSize: 12,
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {value?.comment || "—"}
+                          </Text>
+                        </Card>
+                      );
+                    })}
+                </div>
+
+                {Array.isArray(
+                  aiReviewData.improvements
+                ) &&
+                  aiReviewData.improvements.length > 0 && (
+                    <Card
+                      size="small"
+                      style={{
+                        marginTop: 14,
+                        borderRadius: 14,
+                      }}
+                    >
+                      <Text strong>
+                        {t.aiImprovements}
+                      </Text>
+                      <div
+                        style={{
+                          marginTop: 8,
+                          display: "grid",
+                          gap: 6,
+                        }}
+                      >
+                        {aiReviewData.improvements.map(
+                          (item, index) => (
+                            <Text
+                              key={`improvement-${index}`}
+                              type="secondary"
+                            >
+                              • {item}
+                            </Text>
+                          )
+                        )}
+                      </div>
+                    </Card>
+                  )}
+
+                <Card
+                  size="small"
+                  style={{
+                    marginTop: 14,
+                    borderRadius: 14,
+                    background: isDarkMode
+                      ? "#132B35"
+                      : "#FAFAFA",
+                  }}
+                >
+                  <Text strong>
+                    {t.aiRecommendation}
+                  </Text>
+                  <Text
+                    type="secondary"
+                    style={{
+                      display: "block",
+                      marginTop: 6,
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {aiReviewData.recommendation ||
+                      t.aiNoResult}
+                  </Text>
+                </Card>
+              </div>
+            ) : (
+              <Empty description={t.aiNoResult} />
+            )}
+          </Modal>
+
           <HubModals
+            t={t}
             certificateDetailsOpen={certificateDetailsOpen}
             setCertificateDetailsOpen={setCertificateDetailsOpen}
             pendingCertificateFile={pendingCertificateFile}
@@ -9946,7 +10760,7 @@ function CertificateThumbnail({
     >
       {url ? (
         <iframe
-          title="Certificate preview"
+          title={t.certificatePreview}
           src={`${url}#page=1&toolbar=0&navpanes=0&scrollbar=0`}
           style={{
             position: "absolute",
@@ -10206,6 +11020,7 @@ function InfoAccordion({
 }
 
 function HubModals({
+  t,
   certificateDetailsOpen,
   setCertificateDetailsOpen,
   pendingCertificateFile,
@@ -10267,25 +11082,25 @@ function HubModals({
         }}
         title={
           editingCertificateId
-            ? "Sertifikatni tahrirlash"
-            : "Sertifikat ma’lumotlari"
+            ? t.certificateEditLabel
+            : t.certificateTitleLabel
         }
         centered
         confirmLoading={uploadingCertificate}
         onOk={submitCertificate}
         okText={
           editingCertificateId
-            ? "Saqlash"
-            : "Sertifikatni saqlash"
+            ? t.saveAction
+            : t.certificateSaveLabel
         }
-        cancelText="Bekor qilish"
+        cancelText={t.cancelAction}
       >
         <div style={{ display: "grid", gap: 14 }}>
-          <Input size="large" value={certificateForm.title} onChange={(e) => setCertificateForm((p) => ({ ...p, title: e.target.value }))} placeholder="Advanced Frontend Certificate" />
+          <Input size="large" value={certificateForm.title} onChange={(e) => setCertificateForm((p) => ({ ...p, title: e.target.value }))} placeholder={t.certificateTitlePlaceholder} />
           <Select size="large" value={certificateForm.credentialType} onChange={(v) => setCertificateForm((p) => ({ ...p, credentialType: v }))} options={[{ label: "Sertifikat", value: "certificate" }, { label: "Diplom", value: "diploma" }]} />
-          <Input size="large" value={certificateForm.issuer} onChange={(e) => setCertificateForm((p) => ({ ...p, issuer: e.target.value }))} placeholder="IT Park Uzbekistan" />
-          <Row gutter={12}><Col span={12}><Input type="date" size="large" value={certificateForm.issueDate} onChange={(e) => setCertificateForm((p) => ({ ...p, issueDate: e.target.value }))} /></Col><Col span={12}><Input size="large" value={certificateForm.credentialId} onChange={(e) => setCertificateForm((p) => ({ ...p, credentialId: e.target.value }))} placeholder="CERT-2026-001" /></Col></Row>
-          <Input.TextArea value={certificateForm.description} onChange={(e) => setCertificateForm((p) => ({ ...p, description: e.target.value }))} autoSize={{ minRows: 3, maxRows: 5 }} placeholder="Advanced frontend development course..." />
+          <Input size="large" value={certificateForm.issuer} onChange={(e) => setCertificateForm((p) => ({ ...p, issuer: e.target.value }))} placeholder={t.certificateIssuerPlaceholder} />
+          <Row gutter={12}><Col span={12}><Input type="date" size="large" value={certificateForm.issueDate} onChange={(e) => setCertificateForm((p) => ({ ...p, issueDate: e.target.value }))} /></Col><Col span={12}><Input size="large" value={certificateForm.credentialId} onChange={(e) => setCertificateForm((p) => ({ ...p, credentialId: e.target.value }))} placeholder={t.credentialIdPlaceholder} /></Col></Row>
+          <Input.TextArea value={certificateForm.description} onChange={(e) => setCertificateForm((p) => ({ ...p, description: e.target.value }))} autoSize={{ minRows: 3, maxRows: 5 }} placeholder={t.certificateDescriptionPlaceholder} />
           <Text type="secondary">{pendingCertificateFile?.name || "certificate.pdf"}</Text>
         </div>
       </Modal>
@@ -10293,7 +11108,7 @@ function HubModals({
       <Modal
         open={!!certificatePreview}
         onCancel={handleCloseCertificatePreview}
-        title={certificatePreview?.certificate?.title || "Certificate PDF"}
+        title={certificatePreview?.certificate?.title || t.certificatePdf}
         footer={null}
         width={980}
         centered
@@ -10326,8 +11141,8 @@ function HubModals({
               >
                 {certificatePreview.certificate
                   .credentialType === "diploma"
-                  ? "Diplom"
-                  : "Sertifikat"}
+                  ? t.appDiploma
+                  : t.appCertificate}
               </Tag>
               {certificatePreview.certificate.issuer && (
                 <Text type="secondary">
@@ -10345,7 +11160,7 @@ function HubModals({
                   )
                 }
               >
-                Share
+                {t.share}
               </Button>
 
               <Button
@@ -10356,7 +11171,7 @@ function HubModals({
                   )
                 }
               >
-                QR
+                {t.qr}
               </Button>
 
               <Button
@@ -10374,13 +11189,11 @@ function HubModals({
                       "CERTIFICATE EXPORT ERROR:",
                       error
                     );
-                    message?.error?.(
-                      "PDF eksport qilishda xatolik yuz berdi."
-                    );
+                    notify.error("certificateDownloadError");
                   }
                 }}
               >
-                Export PDF
+                {t.exportPdfAction}
               </Button>
             </Space>
           </div>
@@ -10388,7 +11201,7 @@ function HubModals({
 
         {certificatePreview?.url && (
           <iframe
-            title="Certificate PDF"
+            title={t.certificatePdf}
             src={`${certificatePreview.url}#toolbar=1&navpanes=0`}
             style={{
               width: "100%",
@@ -10405,7 +11218,7 @@ function HubModals({
         onCancel={() =>
           setCertificateShare?.(null)
         }
-        title="Share certificate"
+        title={t.shareCertificateLabel}
         footer={null}
         centered
         width={560}
@@ -10443,7 +11256,7 @@ function HubModals({
                   copyCertificateShareLink
                 }
               >
-                Copy link
+                {t.copyLink}
               </Button>
 
               <Button
@@ -10455,7 +11268,7 @@ function HubModals({
                   shareCertificateNative
                 }
               >
-                Share
+                {t.share}
               </Button>
             </div>
 
@@ -10470,7 +11283,7 @@ function HubModals({
             >
               {certificateShare.certificate?.title ||
                 certificateShare.certificate?.name ||
-                "Certificate"}
+                t.appCertificate}
             </div>
           </div>
         )}
@@ -10479,7 +11292,7 @@ function HubModals({
       <Modal
         open={!!certificateQr}
         onCancel={handleCloseCertificateQr}
-        title="Certificate QR"
+        title={t.certificateQr}
         footer={null}
         centered
       >
@@ -10506,18 +11319,18 @@ function HubModals({
             />
 
             <Text type="secondary">
-              QR ushbu sertifikat havolasini ochadi.
+              {t.scanCertificate}
             </Text>
           </div>
         )}
       </Modal>
 
-      <Modal open={shareOpen} onCancel={() => setShareOpen(false)} title="Share resume" footer={null} centered>
-        {shareResume && <div style={{ display: "grid", gap: 12 }}><Input size="large" readOnly value={buildResumeShareUrl(shareResume.id)} /><Button type="primary" icon={<ShareAltOutlined />} onClick={() => copyShareLink(shareResume)}>Copy public link</Button><Button icon={<QrcodeOutlined />} onClick={() => { setShareOpen(false); openQrModal(shareResume); }}>Show QR code</Button></div>}
+      <Modal open={shareOpen} onCancel={() => setShareOpen(false)} title={t.shareResumeLabel} footer={null} centered>
+        {shareResume && <div style={{ display: "grid", gap: 12 }}><Input size="large" readOnly value={buildResumeShareUrl(shareResume.id)} /><Button type="primary" icon={<ShareAltOutlined />} onClick={() => copyShareLink(shareResume)}>{t.copyPublicLink}</Button><Button icon={<QrcodeOutlined />} onClick={() => { setShareOpen(false); openQrModal(shareResume); }}>{t.showQrCode}</Button></div>}
       </Modal>
 
-      <Modal open={!!qrResume} onCancel={() => setQrResume(null)} title="Resume QR code" footer={null} centered>
-        {qrResume && <div style={{ display: "grid", justifyItems: "center", gap: 12, padding: "10px 0" }}><QRCodeSVG value={buildResumeShareUrl(qrResume.id)} size={220} level="H" includeMargin /><Text type="secondary">Scan to open this public resume.</Text></div>}
+      <Modal open={!!qrResume} onCancel={() => setQrResume(null)} title={t.resumeQrTitle} footer={null} centered>
+        {qrResume && <div style={{ display: "grid", justifyItems: "center", gap: 12, padding: "10px 0" }}><QRCodeSVG value={buildResumeShareUrl(qrResume.id)} size={220} level="H" includeMargin /><Text type="secondary">{t.scanResume}</Text></div>}
       </Modal>
 
       <Modal open={sharedViewOpen} onCancel={() => setSharedViewOpen(false)} footer={null} width="100%" centered={false} styles={{ content: { padding: 0, minHeight: "100vh" }, body: { padding: 0 } }}>
@@ -10816,6 +11629,7 @@ function LocationField({
     "Uzbekistan, Nukus",
     "Uzbekistan, Jizzakh",
     "Uzbekistan, Termez",
+    "Uzbekistan, .Karakalpagistan",
   ];
 
   return (
@@ -11214,7 +12028,7 @@ function SkillChips({
 }
 
 // ============================================================
-// LANGUAGES
+// LANGUAGES - React i18
 // ============================================================
 
 function LanguageChips({
